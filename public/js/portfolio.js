@@ -179,7 +179,16 @@ $('filter-row').addEventListener('click', e => {
 /* ── 오너 전용 세팅 ── */
 function setupOwner() {
   // 편집 버튼 표시
-  document.querySelectorAll('.edit-only').forEach(el => el.style.display = '');
+  document.querySelectorAll('.edit-only').forEach(el => {
+    el.style.display = '';
+    el.style.visibility = 'visible';
+    el.style.opacity = '1';
+  });
+  // 네비 편집 버튼 강제 표시
+  const navBtn = document.getElementById('nav-edit-btn');
+  if (navBtn) {
+    navBtn.style.cssText = 'display:inline-flex!important;visibility:visible!important';
+  }
 
   // 사진 변경
   const overlay = $('photo-overlay');
