@@ -1,0 +1,22 @@
+{
+  "name": "portfolio-system",
+  "version": "3.0.0",
+  "description": "학생 개인 포트폴리오 — 멀티유저 + 디자인 커스터마이저",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev":   "nodemon server/index.js"
+  },
+  "dependencies": {
+    "dotenv":          "^16.3.1",
+    "express":         "^4.18.2",
+    "express-session": "^1.17.3",
+    "multer":          "^1.4.5-lts.1",
+    "passport":        "^0.6.0",
+    "passport-github2":"^0.1.12",
+    "uuid":            "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

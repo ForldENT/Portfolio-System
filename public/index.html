@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>포트폴리오 갤러리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/common.css"/>
+<style>
+body { background:#0d1b2a; color:#fff; }
+
+/* 히어로 */
+.home-hero { min-height:55vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:4rem 2rem 3rem; background:radial-gradient(ellipse at 50% 0%,rgba(30,136,229,.15) 0%,transparent 65%); }
+.home-tag  { font-size:.75rem; letter-spacing:2px; text-transform:uppercase; color:#1e88e5; margin-bottom:1rem; font-weight:600; }
+.home-title { font-family:'Nanum Myeongjo',serif; font-size:clamp(2.4rem,6vw,4.2rem); font-weight:800; line-height:1.15; margin-bottom:1rem; }
+.home-title span { color:#1e88e5; }
+.home-sub  { font-size:1rem; color:#90a4ae; max-width:500px; }
+.login-btn { margin-top:2rem; display:inline-flex; align-items:center; gap:.6rem; background:#1e88e5; color:#fff; padding:.7rem 1.8rem; border-radius:8px; font-size:.95rem; font-weight:600; text-decoration:none; transition:opacity .2s; }
+.login-btn:hover { opacity:.85; }
+.user-bar  { display:flex; align-items:center; gap:1rem; margin-top:1.5rem; background:#1a2e45; padding:.7rem 1.3rem; border-radius:10px; }
+.user-bar img { width:32px; height:32px; border-radius:50%; }
+.user-bar a { color:#1e88e5; font-size:.9rem; font-weight:600; text-decoration:none; }
+.user-bar a:hover { text-decoration:underline; }
+
+/* 학생 그리드 */
+.students { max-width:1100px; margin:0 auto; padding:0 1.5rem 5rem; }
+.sec-lbl  { font-size:.72rem; letter-spacing:2px; text-transform:uppercase; color:#1e88e5; font-weight:600; margin-bottom:.5rem; }
+.sec-ttl  { font-family:'Nanum Myeongjo',serif; font-size:2rem; font-weight:700; margin-bottom:2rem; }
+.grid     { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1.5rem; }
+.s-card   { background:#1a2e45; border:1px solid #2a4060; border-radius:14px; padding:1.5rem; text-decoration:none; color:inherit; transition:transform .2s,box-shadow .2s; display:flex; flex-direction:column; gap:.6rem; }
+.s-card:hover { transform:translateY(-4px); box-shadow:0 8px 30px rgba(30,136,229,.15); border-color:#1e88e5; }
+.s-card img   { width:64px; height:64px; border-radius:50%; border:2px solid #2a4060; object-fit:cover; }
+.s-name  { font-size:1.05rem; font-weight:700; }
+.s-school{ font-size:.82rem; color:#90a4ae; }
+.s-goal  { font-size:.78rem; color:#1e88e5; font-weight:600; background:rgba(30,136,229,.1); border-radius:4px; padding:.2rem .5rem; display:inline-block; }
+.empty   { text-align:center; padding:4rem; color:#90a4ae; grid-column:1/-1; }
+.empty .ei { font-size:3rem; margin-bottom:1rem; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo">포트폴리오 갤러리</a>
+  <div id="nav-auth"></div>
+</nav>
+
+<section class="home-hero">
+  <p class="home-tag">Student Portfolio Gallery</p>
+  <h1 class="home-title">학생들의 <span>포트폴리오</span>를<br>한 눈에 보세요</h1>
+  <p class="home-sub">GitHub 계정으로 로그인하면 나만의 포트폴리오 페이지가 생성됩니다</p>
+  <div id="hero-action"></div>
+</section>
+
+<section class="students">
+  <p class="sec-lbl">All Students</p>
+  <h2 class="sec-ttl">등록된 학생 포트폴리오</h2>
+  <div class="grid" id="student-grid">
+    <div class="empty"><div class="ei">⏳</div><p>불러오는 중...</p></div>
+  </div>
+</section>
+
+<div id="toast-wrap"></div>
+
+<script>
+fetch('/auth/me').then(r=>r.json()).then(me => {
+  const nav = document.getElementById('nav-auth');
+  const act = document.getElementById('hero-action');
+  if (me.loggedIn) {
+    nav.innerHTML = `
+      <div style="display:flex;align-items:center;gap:.8rem">
+        <img src="${me.avatar}" style="width:30px;height:30px;border-radius:50%">
+        <a href="/u/${me.username}" style="color:#1e88e5;font-size:.9rem;font-weight:600;text-decoration:none">내 포트폴리오</a>
+        <a href="/auth/logout" style="color:#90a4ae;font-size:.85rem;text-decoration:none">로그아웃</a>
+      </div>`;
+    act.innerHTML = `<a href="/u/${me.username}" class="login-btn">🎨 내 포트폴리오 보기</a>`;
+  } else {
+    nav.innerHTML  = `<a href="/auth/github" class="login-btn" style="margin:0;padding:.45rem 1.1rem;font-size:.85rem">🐙 GitHub 로그인</a>`;
+    act.innerHTML  = `<a href="/auth/github" class="login-btn">🐙 GitHub으로 시작하기</a>`;
+  }
+});
+
+fetch('/api/users').then(r=>r.json()).then(users => {
+  const grid = document.getElementById('student-grid');
+  if (!users.length) {
+    grid.innerHTML = `<div class="empty"><div class="ei">🎓</div><p>아직 등록된 학생이 없습니다.<br>첫 번째로 등록해보세요!</p></div>`;
+    return;
+  }
+  grid.innerHTML = users.map(u => `
+    <a href="/u/${u.username}" class="s-card">
+      <img src="${u.avatar||'/img/default.png'}" alt="${u.username}"/>
+      <div class="s-name">${u.name||u.username}</div>
+      <div class="s-school">${u.school||'학교 미입력'}</div>
+      ${u.goal ? `<span class="s-goal">${u.goal}</span>` : ''}
+    </a>`).join('');
+});
+</script>
+</body>
+</html>
