@@ -23,6 +23,7 @@
   </ul>
   <div class="nav-actions">
     <a href="/" class="btn btn-ghost btn-sm">← 목록</a>
+    <button class="btn btn-ghost btn-sm" id="nav-download-btn" onclick="downloadPortfolio()" title="내 포트폴리오를 HTML 파일로 다운로드">⬇️ 다운로드</button>
     <button class="btn btn-ghost btn-sm edit-only" id="nav-edit-btn">✏️ 편집</button>
   </div>
 </nav>
@@ -334,6 +335,28 @@
   </div>
 </div>
 
+<script>
+function downloadPortfolio() {
+  const username = location.pathname.split('/u/')[1]?.split('/')[0];
+  if (!username) return;
+  const btn = document.getElementById('nav-download-btn');
+  btn.textContent = '⏳ 생성 중...';
+  btn.disabled = true;
+
+  // 다운로드 링크 생성 후 클릭
+  const a = document.createElement('a');
+  a.href = '/api/users/' + username + '/download';
+  a.download = username + '_portfolio.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  setTimeout(() => {
+    btn.textContent = '⬇️ 다운로드';
+    btn.disabled = false;
+  }, 2000);
+}
+</script>
 <script src="/js/portfolio.js"></script>
 </body>
 </html>
