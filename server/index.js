@@ -1,12 +1,12 @@
 // ──────────────────────────────────────────────────────────────
-//  server/index.js  — 메인 서버
+//  server/index.js  — 메인 서버 (MongoDB 연동)
 // ──────────────────────────────────────────────────────────────
 require('dotenv').config();
-const express   = require('express');
-const session   = require('express-session');
-const passport  = require('passport');
-const path      = require('path');
-const fs        = require('fs');
+const express  = require('express');
+const session  = require('express-session');
+const passport = require('passport');
+const path     = require('path');
+const fs       = require('fs');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -29,15 +29,29 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Passport 설정
-require('./passport')(passport);
+// MongoDB 연결 후 서버 시작
+async function startServer() {
+  const { connectDB, User } = require('./mongoose');
+  const db = require('./db');
 
-// 라우터
-app.use('/auth',      require('./routes/auth'));
-app.use('/api',       require('./routes/api'));
-app.use('/',          require('./routes/pages'));
+  const connected = await connectDB();
+  db.initMongo(connected, User);
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 서버 실행: http://localhost:${PORT}`);
-  console.log(`📁 데이터:   ${path.join(__dirname, '../data')}\n`);
-});
+  if (connected) {
+    console.log('💾 데이터 저장소: MongoDB Atlas');
+  } else {
+    console.log('💾 데이터 저장소: 로컬 JSON 파일 (data/users.json)');
+  }
+
+  require('./passport')(passport);
+
+  app.use('/auth', require('./routes/auth'));
+  app.use('/api',  require('./routes/api'));
+  app.use('/',     require('./routes/pages'));
+
+  app.listen(PORT, () => {
+    console.log('\n🚀 서버 실행: http://localhost:' + PORT + '\n');
+  });
+}
+
+startServer().catch(console.error);
