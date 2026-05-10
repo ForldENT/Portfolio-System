@@ -146,4 +146,18 @@ async function deleteDoc(userId, docId) {
   writeJSON(db); return true;
 }
 
-module.exports = { initMongo, getUserById, getUserByUsername, getAllUsers, createUser, updatePortfolio, addWork, updateWork, deleteWork, addDoc, deleteDoc, defaultPortfolio };
+
+async function deleteUser(username) {
+  if (useMongo) {
+    const res = await User.deleteOne({ username: new RegExp('^' + username + '$', 'i') });
+    return res.deletedCount > 0;
+  }
+  const db = readJSON();
+  const user = Object.values(db.users).find(u => u.username.toLowerCase() === username.toLowerCase());
+  if (!user) return false;
+  delete db.users[String(user.id)];
+  writeJSON(db);
+  return true;
+}
+
+module.exports = { initMongo, getUserById, getUserByUsername, getAllUsers, createUser, deleteUser, updatePortfolio, addWork, updateWork, deleteWork, addDoc, deleteDoc, defaultPortfolio };

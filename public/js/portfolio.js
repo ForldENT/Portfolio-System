@@ -5,8 +5,7 @@
 const G = { username:null, me:null, isOwner:false, portfolio:null, filter:'all' };
 
 const $     = id => document.getElementById(id);
-const ytId  = url => { const m=(url||'').match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; };
-const toast = (msg, type='info') => {
+const ytId = url => { const m=(url||'').match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; };const toast = (msg, type='info') => {
   const el = document.createElement('div');
   el.className = `toast ${type}`; el.textContent = msg;
   $('toast-wrap').appendChild(el);
