@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>포트폴리오 갤러리</title>
+<title>포트폴리오</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/css/common.css"/>
@@ -18,27 +18,47 @@ body { background:#0d1b2a; color:#fff; }
 .home-sub  { font-size:1rem; color:#90a4ae; max-width:500px; }
 .login-btn { margin-top:2rem; display:inline-flex; align-items:center; gap:.6rem; background:#1e88e5; color:#fff; padding:.7rem 1.8rem; border-radius:8px; font-size:.95rem; font-weight:600; text-decoration:none; transition:opacity .2s; }
 .login-btn:hover { opacity:.85; }
-.user-bar  { display:flex; align-items:center; gap:1rem; margin-top:1.5rem; background:#1a2e45; padding:.7rem 1.3rem; border-radius:10px; }
-.user-bar img { width:32px; height:32px; border-radius:50%; }
-.user-bar a { color:#1e88e5; font-size:.9rem; font-weight:600; text-decoration:none; }
-.user-bar a:hover { text-decoration:underline; }
 
 /* 학생 그리드 */
 .students { max-width:1100px; margin:0 auto; padding:0 1.5rem 5rem; }
 .sec-lbl  { font-size:.72rem; letter-spacing:2px; text-transform:uppercase; color:#1e88e5; font-weight:600; margin-bottom:.5rem; }
 .sec-ttl  { font-family:'Nanum Myeongjo',serif; font-size:2rem; font-weight:700; margin-bottom:2rem; }
 .grid     { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1.5rem; }
+
+/* 카드 래퍼 */
+.s-card-wrap { position:relative; }
 .s-card   { background:#1a2e45; border:1px solid #2a4060; border-radius:14px; padding:1.5rem; text-decoration:none; color:inherit; transition:transform .2s,box-shadow .2s; display:flex; flex-direction:column; gap:.6rem; }
 .s-card:hover { transform:translateY(-4px); box-shadow:0 8px 30px rgba(30,136,229,.15); border-color:#1e88e5; }
 .s-card img   { width:64px; height:64px; border-radius:50%; border:2px solid #2a4060; object-fit:cover; }
 .s-name  { font-size:1.05rem; font-weight:700; }
 .s-school{ font-size:.82rem; color:#90a4ae; }
 .s-goal  { font-size:.78rem; color:#1e88e5; font-weight:600; background:rgba(30,136,229,.1); border-radius:4px; padding:.2rem .5rem; display:inline-block; }
+
+/* 관리자 삭제 버튼 */
+.admin-del-btn {
+  position:absolute; top:10px; right:10px; z-index:10;
+  width:30px; height:30px;
+  background:#e53935; color:#fff;
+  border:none; border-radius:7px; cursor:pointer;
+  font-size:.85rem; display:flex; align-items:center; justify-content:center;
+  transition:background .15s, transform .15s;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.admin-del-btn:hover { background:#b71c1c; transform:scale(1.1); }
+
+/* 관리자 배지 */
+.admin-badge {
+  background:#e53935; color:#fff;
+  font-size:.68rem; font-weight:700;
+  padding:.15rem .45rem; border-radius:4px;
+}
+
 .empty   { text-align:center; padding:4rem; color:#90a4ae; grid-column:1/-1; }
 .empty .ei { font-size:3rem; margin-bottom:1rem; }
 </style>
 </head>
 <body>
+
 <nav class="nav">
   <a href="/" class="nav-logo">세명컴퓨터고등학교</a>
   <div id="nav-auth"></div>
@@ -46,7 +66,7 @@ body { background:#0d1b2a; color:#fff; }
 
 <section class="home-hero">
   <p class="home-tag">Student Portfolio</p>
-<h1 class="home-title">세명컴퓨터고등학교학생 <span>포트폴리오</span><br></h1>
+<h1 class="home-title">세명컴퓨터고등학교<br>학생 <span>포트폴리오</span></h1>
   <p class="home-sub">GitHub 계정으로 로그인하면 나만의 포트폴리오 페이지가 생성됩니다</p>
   <div id="hero-action"></div>
 </section>
@@ -62,37 +82,105 @@ body { background:#0d1b2a; color:#fff; }
 <div id="toast-wrap"></div>
 
 <script>
-fetch('/auth/me').then(r=>r.json()).then(me => {
+let _isAdmin = false;
+
+// 로그인 상태 + 관리자 여부 동시 확인 후 학생 목록 로드
+Promise.all([
+  fetch('/auth/me').then(r => r.json()),
+  fetch('/api/admin/check').then(r => r.json()),
+]).then(([me, adminRes]) => {
+  _isAdmin = adminRes.isAdmin || false;
+
   const nav = document.getElementById('nav-auth');
   const act = document.getElementById('hero-action');
+
   if (me.loggedIn) {
+    const adminBadge = _isAdmin ? '<span class="admin-badge">관리자</span>' : '';
     nav.innerHTML = `
       <div style="display:flex;align-items:center;gap:.8rem">
         <img src="${me.avatar}" style="width:30px;height:30px;border-radius:50%">
+        ${adminBadge}
         <a href="/u/${me.username}" style="color:#1e88e5;font-size:.9rem;font-weight:600;text-decoration:none">내 포트폴리오</a>
         <a href="/auth/logout" style="color:#90a4ae;font-size:.85rem;text-decoration:none">로그아웃</a>
       </div>`;
     act.innerHTML = `<a href="/u/${me.username}" class="login-btn">🎨 내 포트폴리오 보기</a>`;
   } else {
-    nav.innerHTML  = `<a href="/auth/github" class="login-btn" style="margin:0;padding:.45rem 1.1rem;font-size:.85rem">🐙 GitHub 로그인</a>`;
-    act.innerHTML  = `<a href="/auth/github" class="login-btn">🐙 GitHub으로 시작하기</a>`;
+    nav.innerHTML = `<a href="/auth/github" class="login-btn" style="margin:0;padding:.45rem 1.1rem;font-size:.85rem">🐙 GitHub 로그인</a>`;
+    act.innerHTML = `<a href="/auth/github" class="login-btn">🐙 GitHub으로 시작하기</a>`;
   }
-});
 
-fetch('/api/users').then(r=>r.json()).then(users => {
+  return fetch('/api/users').then(r => r.json());
+
+}).then(users => {
+  renderStudents(users);
+
+}).catch(err => console.error(err));
+
+// 학생 목록 렌더
+function renderStudents(users) {
   const grid = document.getElementById('student-grid');
   if (!users.length) {
     grid.innerHTML = `<div class="empty"><div class="ei">🎓</div><p>아직 등록된 학생이 없습니다.<br>첫 번째로 등록해보세요!</p></div>`;
     return;
   }
   grid.innerHTML = users.map(u => `
-    <a href="/u/${u.username}" class="s-card">
-      <img src="${u.avatar||'/img/default.png'}" alt="${u.username}"/>
-      <div class="s-name">${u.name||u.username}</div>
-      <div class="s-school">${u.school||'학교 미입력'}</div>
-      ${u.goal ? `<span class="s-goal">${u.goal}</span>` : ''}
-    </a>`).join('');
-});
+    <div class="s-card-wrap">
+      <a href="/u/${u.username}" class="s-card">
+        <img src="${u.avatar||''}" alt="${u.username}"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 fill=%22%231a2e45%22/><text x=%2232%22 y=%2240%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2228%22 font-family=%22sans-serif%22>${(u.name||u.username)[0].toUpperCase()}</text></svg>'"/>
+        <div class="s-name">${u.name || u.username}</div>
+        <div class="s-school">${u.school || '학교 미입력'}</div>
+        ${u.goal ? `<span class="s-goal">${u.goal}</span>` : ''}
+      </a>
+      ${_isAdmin ? `
+        <button class="admin-del-btn"
+          onclick="deleteStudent('${u.username}', event)"
+          title="${u.username} 삭제">🗑️</button>
+      ` : ''}
+    </div>`).join('');
+}
+
+// 관리자 학생 삭제
+function deleteStudent(username, e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (!confirm(`[ ${username} ] 학생의 포트폴리오를 삭제할까요?\n이 작업은 되돌릴 수 없습니다!`)) return;
+
+  fetch('/api/admin/users/' + username, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(res => {
+      if (res.ok) {
+        // 카드 페이드아웃 후 제거
+        const wrap = e.target.closest('.s-card-wrap');
+        if (wrap) {
+          wrap.style.transition = 'opacity .3s, transform .3s';
+          wrap.style.opacity    = '0';
+          wrap.style.transform  = 'scale(0.95)';
+          setTimeout(() => {
+            wrap.remove();
+            const grid = document.getElementById('student-grid');
+            if (!grid.querySelector('.s-card-wrap')) {
+              grid.innerHTML = '<div class="empty"><div class="ei">🎓</div><p>등록된 학생이 없습니다.</p></div>';
+            }
+          }, 300);
+        }
+        showToast(`${username} 포트폴리오 삭제 완료!`, 'success');
+      } else {
+        showToast('삭제 실패: ' + (res.error || '오류'), 'error');
+      }
+    })
+    .catch(() => showToast('네트워크 오류가 발생했습니다.', 'error'));
+}
+
+// 토스트 알림
+function showToast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toast-wrap').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
 </script>
 </body>
 </html>
