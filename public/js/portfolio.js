@@ -217,7 +217,7 @@ function bindEditEvents() {
   // 저장 버튼들
   $('save-profile').onclick = saveProfile;
   $('save-about').onclick   = saveAbout;
-  $('save-work').onclick    = saveWork;
+  $('w-save-btn').onclick   = saveWork;
   $('save-doc').onclick     = saveDoc;
   $('save-contact').onclick = saveContact;
 
