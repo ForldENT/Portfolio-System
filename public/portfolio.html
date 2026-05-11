@@ -9,6 +9,52 @@
 <link rel="stylesheet" href="/css/common.css"/>
 <link rel="stylesheet" href="/css/portfolio.css"/>
 <link rel="stylesheet" href="/css/designer.css"/>
+<style>
+/* ── 배너 ── */
+.hero-banner-overlay {
+  position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:0;
+}
+.hero-banner-btn {
+  position:absolute;bottom:1rem;right:1rem;z-index:10;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;
+  padding:.4rem .85rem;font-size:.8rem;cursor:pointer;
+  display:none;align-items:center;gap:.4rem;transition:background .2s;
+  font-family:var(--font-body);
+}
+.hero-banner-btn:hover{background:rgba(0,0,0,.75)}
+
+/* ── 프로젝트 섹션 ── */
+.project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.4rem}
+.project-card{
+  background:var(--pg-card);border-radius:var(--radius);border:1px solid var(--pg-border);
+  overflow:hidden;transition:transform .2s,box-shadow .2s;position:relative;
+}
+.project-card:hover{transform:translateY(var(--card-hover));box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.project-thumb{
+  width:100%;height:120px;background:linear-gradient(135deg,#1a2e45,#0d1b2a);
+  display:flex;align-items:center;justify-content:center;font-size:2.5rem;
+}
+.project-body{padding:1rem}
+.project-title{font-size:.96rem;font-weight:700;margin-bottom:.3rem;color:var(--pg-text)}
+.project-desc{font-size:.82rem;color:var(--pg-muted);margin-bottom:.7rem;line-height:1.55}
+.project-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.7rem}
+.project-tag{background:var(--pg-sec-b);color:var(--pg-muted);font-size:.7rem;padding:.17rem .5rem;border-radius:4px}
+.project-dl{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:var(--accent);color:#fff;border:none;border-radius:6px;
+  padding:.38rem .85rem;font-size:.8rem;cursor:pointer;text-decoration:none;
+  font-family:var(--font-body);transition:opacity .2s;
+}
+.project-dl:hover{opacity:.85}
+.project-actions{position:absolute;top:8px;right:8px;display:none;gap:.3rem}
+.card-action-btn{
+  background:rgba(13,27,42,.82);backdrop-filter:blur(4px);
+  border:1px solid rgba(255,255,255,.2);color:#fff;
+  border-radius:6px;padding:.23rem .48rem;font-size:.73rem;cursor:pointer;
+}
+.card-action-btn:hover{background:#1a2e45}
+</style>
 </head>
 <body>
 
@@ -18,25 +64,34 @@
   <ul class="nav-links">
     <li><a href="#about">소개</a></li>
     <li><a href="#portfolio">포트폴리오</a></li>
+    <li><a href="#projects">프로젝트</a></li>
     <li><a href="#resume">서류</a></li>
     <li><a href="#contact">연락처</a></li>
   </ul>
   <div class="nav-actions">
     <a href="/" class="btn btn-ghost btn-sm">← 목록</a>
-    <button class="btn btn-ghost btn-sm" id="nav-download-btn" onclick="downloadPortfolio()" title="내 포트폴리오를 HTML 파일로 다운로드">⬇️ 다운로드</button>
-    <button class="btn btn-ghost btn-sm edit-only" id="nav-edit-btn">✏️ 편집</button>
+    <button class="btn btn-ghost btn-sm" id="nav-download-btn" onclick="downloadPortfolio()" title="포트폴리오 HTML 다운로드">⬇️ 다운로드</button>
+    <button class="btn btn-ghost btn-sm edit-only" id="nav-edit-btn" style="display:none">✏️ 편집</button>
   </div>
 </nav>
 
-<!-- 히어로 -->
+<!-- 히어로 (배너 사진 변경 가능) -->
 <section class="hero" id="hero">
-  <div class="hero-inner">
+  <!-- 배너 배경 이미지 -->
+  <div id="hero-banner-bg" style="position:absolute;inset:0;background-size:cover;background-position:center;z-index:0;"></div>
+  <div class="hero-banner-overlay" id="hero-overlay"></div>
+  <div class="hero-inner" style="position:relative;z-index:2">
     <span class="hero-badge" id="hero-badge">학생 포트폴리오</span>
     <h1 class="hero-name" id="hero-name"><span>이름</span></h1>
     <p class="hero-desc" id="hero-desc"></p>
     <div class="hero-tags" id="hero-tags"></div>
   </div>
-  <div class="hero-scroll"><span>SCROLL</span><div class="scroll-bar"></div></div>
+  <!-- 배너 변경 버튼 (오너만 표시) -->
+  <button class="hero-banner-btn edit-only" id="banner-change-btn" style="display:none">
+    🖼️ 배너 사진 변경
+    <input type="file" id="banner-file" accept="image/*" style="display:none"/>
+  </button>
+  <div class="hero-scroll" style="z-index:2"><span>SCROLL</span><div class="scroll-bar"></div></div>
 </section>
 
 <!-- 자기소개 -->
@@ -89,8 +144,19 @@
   </div>
 </section>
 
+<!-- 프로젝트 (알집 업로드) -->
+<section id="projects" class="sec-white">
+  <div class="sec-inner">
+    <div class="sec-header-row">
+      <div><p class="sec-label">Projects</p><h2 class="sec-title">프로젝트</h2></div>
+      <button class="btn btn-primary btn-sm edit-only" id="btn-add-project" style="display:none">+ 프로젝트 추가</button>
+    </div>
+    <div class="project-grid" id="project-grid"></div>
+  </div>
+</section>
+
 <!-- 서류 -->
-<section id="resume" class="sec-white">
+<section id="resume" class="sec-gray">
   <div class="sec-inner">
     <div class="sec-header-row">
       <div><p class="sec-label">Documents</p><h2 class="sec-title">자기소개서 &amp; 서류</h2></div>
@@ -160,43 +226,32 @@
     <div class="fg"><label class="fl">제목</label><input class="fi" id="w-title"/></div>
     <div class="fg"><label class="fl">설명</label><input class="fi" id="w-desc"/></div>
     <div class="frow">
-      <div class="fg">
-        <label class="fl">분류</label>
+      <div class="fg"><label class="fl">분류</label>
         <select class="fs" id="w-cat">
-          <option value="design">디자인</option>
-          <option value="dev">개발</option>
-          <option value="video">영상</option>
-          <option value="etc">기타</option>
+          <option value="design">디자인</option><option value="dev">개발</option>
+          <option value="video">영상</option><option value="etc">기타</option>
         </select>
       </div>
-      <div class="fg">
-        <label class="fl">미디어 유형</label>
+      <div class="fg"><label class="fl">미디어 유형</label>
         <select class="fs" id="w-type">
-          <option value="image">이미지</option>
-          <option value="youtube">유튜브</option>
-          <option value="video">영상 파일</option>
-          <option value="pdf">PDF</option>
+          <option value="image">이미지</option><option value="youtube">유튜브</option>
+          <option value="video">영상 파일</option><option value="pdf">PDF</option>
         </select>
       </div>
     </div>
-    <div class="fg" id="w-yt-g">
-      <label class="fl">유튜브 URL</label>
-      <input class="fi" id="w-yt" placeholder="https://youtu.be/..."/>
-    </div>
+    <div class="fg" id="w-yt-g"><label class="fl">유튜브 URL</label><input class="fi" id="w-yt" placeholder="https://youtu.be/..."/></div>
     <div class="fg" id="w-file-g" style="display:none">
       <label class="fl">파일 업로드</label>
       <div class="upload-zone" id="w-upload-zone">
         <input type="file" id="w-file"/>
-        <div class="uz-icon">📁</div>
-        <p>클릭하여 파일 선택</p>
+        <div class="uz-icon">📁</div><p>클릭하여 파일 선택</p>
         <p id="w-fn" style="font-size:.8rem;color:var(--accent);margin-top:.3rem"></p>
       </div>
       <div id="w-cur-wrap" style="display:none;margin-top:.8rem">
-        <p style="font-size:.77rem;color:#546e7a;margin-bottom:.4rem">현재 이미지 (새 파일 선택 시 교체)</p>
+        <p style="font-size:.77rem;color:#546e7a;margin-bottom:.4rem">현재 이미지</p>
         <div style="display:flex;align-items:center;gap:.9rem">
           <img id="w-cur-img" src="" style="width:76px;height:58px;object-fit:cover;border-radius:6px;border:1px solid #2a4060"/>
-          <div>
-            <p style="font-size:.78rem;color:#546e7a">새 파일을 선택하거나 URL을 입력하세요</p>
+          <div><p style="font-size:.78rem;color:#546e7a">새 파일 선택 시 교체돼요</p>
             <input class="fi" id="w-url-input" placeholder="또는 이미지 URL 입력" style="margin-top:.4rem;font-size:.82rem"/>
           </div>
         </div>
@@ -210,25 +265,47 @@
   </div>
 </div>
 
+<!-- ═══ 모달: 프로젝트 추가 ═══ -->
+<div class="modal-overlay" id="modal-project">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-ttl" id="proj-ttl">프로젝트 추가</span><button class="modal-x" data-close="project">×</button></div>
+    <input type="hidden" id="proj-id"/>
+    <div class="fg"><label class="fl">프로젝트 이름</label><input class="fi" id="proj-name"/></div>
+    <div class="fg"><label class="fl">설명</label><textarea class="ft" id="proj-desc" rows="3"></textarea></div>
+    <div class="fg">
+      <label class="fl">파일 업로드 (ZIP, 알집, RAR, 폴더 등)</label>
+      <div class="upload-zone" id="proj-upload-zone">
+        <input type="file" id="proj-file" accept=".zip,.alz,.rar,.7z,.tar,.gz"/>
+        <div class="uz-icon">📦</div>
+        <p>클릭하여 파일 선택</p>
+        <p style="font-size:.75rem;color:#546e7a;margin-top:.2rem">ZIP, ALZ, RAR, 7Z 등 압축 파일 지원</p>
+        <p id="proj-fn" style="font-size:.8rem;color:var(--accent);margin-top:.3rem"></p>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">또는 GitHub/외부 링크</label><input class="fi" id="proj-link" placeholder="https://github.com/..."/></div>
+    <div class="fg"><label class="fl">태그 (쉼표 구분)</label><input class="fi" id="proj-tags" placeholder="Unity, C#, 게임"/></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="project">취소</button>
+      <button class="btn btn-primary" id="proj-save-btn">추가</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ 모달: 서류 ═══ -->
 <div class="modal-overlay" id="modal-doc">
   <div class="modal">
     <div class="modal-hdr"><span class="modal-ttl">서류 추가</span><button class="modal-x" data-close="doc">×</button></div>
     <div class="fg"><label class="fl">서류 이름</label><input class="fi" id="d-name"/></div>
-    <div class="fg">
-      <label class="fl">종류</label>
+    <div class="fg"><label class="fl">종류</label>
       <select class="fs" id="d-type">
-        <option value="pdf">PDF</option>
-        <option value="ppt">PPT</option>
-        <option value="img">이미지</option>
+        <option value="pdf">PDF</option><option value="ppt">PPT</option><option value="img">이미지</option>
       </select>
     </div>
     <div class="fg">
       <label class="fl">파일 업로드</label>
       <div class="upload-zone" id="d-upload-zone">
         <input type="file" id="d-file" accept=".pdf,.ppt,.pptx,.jpg,.png,.webp"/>
-        <div class="uz-icon">📎</div>
-        <p>클릭하여 파일 선택</p>
+        <div class="uz-icon">📎</div><p>클릭하여 파일 선택</p>
         <p id="d-fn" style="font-size:.8rem;color:var(--accent);margin-top:.3rem"></p>
       </div>
     </div>
@@ -241,14 +318,18 @@
   </div>
 </div>
 
-<!-- ═══ 모달: 연락처 ═══ -->
+<!-- ═══ 모달: 연락처 (전화번호 + 유튜브 추가) ═══ -->
 <div class="modal-overlay" id="modal-contact">
   <div class="modal">
     <div class="modal-hdr"><span class="modal-ttl">연락처 수정</span><button class="modal-x" data-close="contact">×</button></div>
     <div class="fg"><label class="fl">설명 문구</label><input class="fi" id="c-desc"/></div>
-    <div class="fg"><label class="fl">이메일</label><input class="fi" id="c-email" type="email"/></div>
-    <div class="fg"><label class="fl">GitHub URL</label><input class="fi" id="c-github"/></div>
-    <div class="fg"><label class="fl">Instagram URL</label><input class="fi" id="c-insta"/></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">이메일</label><input class="fi" id="c-email" type="email"/></div>
+      <div class="fg"><label class="fl">전화번호</label><input class="fi" id="c-phone" placeholder="010-0000-0000"/></div>
+    </div>
+    <div class="fg"><label class="fl">GitHub URL</label><input class="fi" id="c-github" placeholder="https://github.com/아이디"/></div>
+    <div class="fg"><label class="fl">YouTube 채널 URL</label><input class="fi" id="c-youtube" placeholder="https://youtube.com/@채널명"/></div>
+    <div class="fg"><label class="fl">Instagram URL</label><input class="fi" id="c-insta" placeholder="https://instagram.com/아이디"/></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="contact">취소</button>
       <button class="btn btn-primary" id="save-contact">저장</button>
@@ -290,8 +371,7 @@
     <div class="dp-pane" id="pane-color" style="display:none">
       <div class="dp-sec">
         <div class="dp-sec-ttl">포인트 색상</div>
-        <div class="color-row">
-          <span class="cr-lbl">메인 포인트</span>
+        <div class="color-row"><span class="cr-lbl">메인 포인트</span>
           <div class="cr-r"><div class="c-dot" id="acc-dot" style="background:#1e88e5"></div><span class="c-hex" id="acc-hex">#1e88e5</span><input type="color" class="dp-cp" id="acc-picker" value="#1e88e5"/></div>
         </div>
         <div class="dp-sec-ttl" style="margin-top:.9rem">프리셋 팔레트</div>
@@ -340,21 +420,12 @@ function downloadPortfolio() {
   const username = location.pathname.split('/u/')[1]?.split('/')[0];
   if (!username) return;
   const btn = document.getElementById('nav-download-btn');
-  btn.textContent = '⏳ 생성 중...';
-  btn.disabled = true;
-
-  // 다운로드 링크 생성 후 클릭
+  btn.textContent = '⏳ 생성 중...'; btn.disabled = true;
   const a = document.createElement('a');
   a.href = '/api/users/' + username + '/download';
   a.download = username + '_portfolio.html';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  setTimeout(() => {
-    btn.textContent = '⬇️ 다운로드';
-    btn.disabled = false;
-  }, 2000);
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => { btn.textContent = '⬇️ 다운로드'; btn.disabled = false; }, 2000);
 }
 </script>
 <script src="/js/portfolio.js"></script>

@@ -29,8 +29,8 @@ function defaultPortfolio(profile) {
     aboutText:   '자기소개를 입력해주세요.',
     school: '', grade: '', interest: '', goal: '',
     contactDesc: '연락은 아래 링크를 이용해주세요.',
-    email: '', github: 'https://github.com/' + profile.username, instagram: '',
-    works: [], docs: [],
+    email: '', phone: '', github: 'https://github.com/' + profile.username, youtube: '', instagram: '',
+    works: [], docs: [], projects: [],
     design: {
       theme: 'dark', accentColor: '#1e88e5', font: 'pretendard',
       layout: 'default', bgPattern: 'none', heroHeight: 92, cardRadius: 12,

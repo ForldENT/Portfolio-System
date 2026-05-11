@@ -31,9 +31,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 20 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const ok = /jpeg|jpg|png|gif|webp|pdf|mp4|webm/i.test(path.extname(file.originalname));
+    const ok = /jpeg|jpg|png|gif|webp|pdf|mp4|webm|zip|alz|rar|7z|tar|gz/i.test(path.extname(file.originalname));
     ok ? cb(null, true) : cb(new Error('지원하지 않는 파일 형식'));
   },
 });
@@ -73,7 +73,8 @@ router.get('/users/:username', async (req, res) => {
 router.patch('/portfolio', auth, async (req, res) => {
   try {
     const allowed = ['name','siteTitle','badge','desc','tags','aboutText','school','grade',
-                     'interest','goal','contactDesc','email','github','instagram','design'];
+                     'interest','goal','contactDesc','email','phone','github','youtube','instagram',
+                     'design','bannerSrc','projects'];
     const updates = {};
     allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
     const u = await db.updatePortfolio(req.user.id, updates);
@@ -171,6 +172,50 @@ router.delete('/docs/:id', auth, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+
+
+// ── 배너 사진 업로드 ─────────────────────────────────────────
+router.post('/portfolio/banner', auth, upload.single('photo'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: '파일 없음' });
+    const url = '/uploads/' + req.file.filename;
+    await db.updatePortfolio(req.user.id, { bannerSrc: url });
+    res.json({ ok: true, url });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── 프로젝트 추가 ─────────────────────────────────────────────
+router.post('/projects', auth, upload.single('file'), async (req, res) => {
+  try {
+    const { name, desc, tags, link } = req.body;
+    if (!name) return res.status(400).json({ error: '이름을 입력하세요.' });
+    const src = req.file ? '/uploads/' + req.file.filename : '';
+    const project = {
+      id: uuid(), name, desc: desc||'',
+      src, link: link||'',
+      tags: tags ? tags.split(',').map(t=>t.trim()).filter(Boolean) : [],
+      createdAt: new Date().toISOString(),
+    };
+    // db에 프로젝트 추가
+    const u = await db.getUserById(req.user.id);
+    if (!u) return res.status(404).json({ error: '유저 없음' });
+    const projects = u.portfolio.projects || [];
+    projects.push(project);
+    await db.updatePortfolio(req.user.id, { projects });
+    res.json({ ok: true, project });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── 프로젝트 삭제 ─────────────────────────────────────────────
+router.delete('/projects/:id', auth, async (req, res) => {
+  try {
+    const u = await db.getUserById(req.user.id);
+    if (!u) return res.status(404).json({ error: '유저 없음' });
+    const projects = (u.portfolio.projects||[]).filter(p => String(p.id) !== String(req.params.id));
+    await db.updatePortfolio(req.user.id, { projects });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 // ── 포트폴리오 HTML 다운로드 ─────────────────────────────────
 router.get('/users/:username/download', async (req, res) => {
