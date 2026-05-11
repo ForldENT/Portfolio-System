@@ -58,10 +58,13 @@ async function getAllUsers() {
     users = Object.values(readJSON().users);
   }
   return users.map(u => ({
-    id: u.id, username: u.username, avatar: u.avatar,
-    name:   u.portfolio && u.portfolio.name   || u.username,
-    school: u.portfolio && u.portfolio.school || '',
-    goal:   u.portfolio && u.portfolio.goal   || '',
+    id:       u.id,
+    username: u.username,
+    // photoSrc(직접 업로드 사진)가 있으면 우선 사용, 없으면 GitHub 프로필 사진
+    avatar:   (u.portfolio && u.portfolio.photoSrc) || u.avatar || '',
+    name:     (u.portfolio && u.portfolio.name)   || u.username,
+    school:   (u.portfolio && u.portfolio.school) || '',
+    goal:     (u.portfolio && u.portfolio.goal)   || '',
   }));
 }
 
