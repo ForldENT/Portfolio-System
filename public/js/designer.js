@@ -42,8 +42,8 @@ const BG_PATTERNS = [
 const SECTIONS_META = [
   { id:'about',     label:'자기소개',         icon:'👤' },
   { id:'portfolio', label:'포트폴리오',        icon:'🎨' },
-  { id:'projects',  label:'프로젝트',          icon:'📦' },
   { id:'resume',    label:'자기소개서 & 서류', icon:'📄' },
+  { id:'projects',  label:'프로젝트',          icon:'📦' },
   { id:'contact',   label:'연락처',            icon:'📬' },
 ];
 
@@ -54,7 +54,7 @@ let DS = Object.assign({
   theme:'dark', accentColor:'#1e88e5', font:'pretendard',
   layout:'default', bgPattern:'none', heroHeight:92, cardRadius:12,
   animOn:true, shadowOn:true, borderOn:true,
-  sectionOrder:['about','portfolio','projects','resume','contact'],
+  sectionOrder:['about','portfolio','resume','projects','contact'],
 }, G.portfolio?.design || {});
 
 let liveTimer = null;
@@ -352,6 +352,6 @@ async function saveDesign() {
 
 function resetDesign() {
   if (!confirm('디자인을 기본값으로 초기화할까요?')) return;
-  DS = { theme:'dark', accentColor:'#1e88e5', font:'pretendard', layout:'default', bgPattern:'none', heroHeight:92, cardRadius:12, animOn:true, shadowOn:true, borderOn:true, sectionOrder:['about','portfolio','projects','resume','contact'] };
+  DS = { theme:'dark', accentColor:'#1e88e5', font:'pretendard', layout:'default', bgPattern:'none', heroHeight:92, cardRadius:12, animOn:true, shadowOn:true, borderOn:true, sectionOrder:['about','portfolio','resume','projects','contact'] };
   applyDesignAll(DS); renderDP(); showLive(); toast('초기화 완료!','info');
 }
