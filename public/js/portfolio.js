@@ -382,11 +382,20 @@ function viewWork(id){
   $('viewer-media').innerHTML=html; openModal('viewer');
 }
 
-// 섹션 순서
+// 섹션 순서 — 누락된 섹션 자동 보완 후 적용
 function applySectionOrder(order){
   if(!order||!order.length) return;
-  const footer=document.querySelector('footer');
-  order.forEach(id=>{ const el=document.getElementById(id); if(el&&footer) document.body.insertBefore(el,footer); });
+  const ALL = ['about','portfolio','resume','projects','contact'];
+  // DB에 없는 섹션은 contact 바로 앞에 자동 추가
+  ALL.forEach(id => {
+    if(!order.includes(id)){
+      const ci = order.indexOf('contact');
+      if(ci > -1) order.splice(ci, 0, id);
+      else order.push(id);
+    }
+  });
+  const footer = document.querySelector('footer');
+  order.forEach(id => { const el=document.getElementById(id); if(el&&footer) document.body.insertBefore(el,footer); });
 }
 
 // API 헬퍼

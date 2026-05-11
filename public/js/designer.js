@@ -50,12 +50,29 @@ const SECTIONS_META = [
 const PRESETS = ['#1e88e5','#e94560','#9c27b0','#00897b','#2e7d32','#f57f17','#e65100','#ec407a','#0097a7','#5c6bc0','#ff6f00','#37474f'];
 
 /* ── 현재 디자인 상태 ── */
+const DEFAULT_ORDER = ['about','portfolio','resume','projects','contact'];
+const ALL_SECTION_IDS = SECTIONS_META.map(s => s.id);
+
 let DS = Object.assign({
   theme:'dark', accentColor:'#1e88e5', font:'pretendard',
   layout:'default', bgPattern:'none', heroHeight:92, cardRadius:12,
   animOn:true, shadowOn:true, borderOn:true,
-  sectionOrder:['about','portfolio','resume','projects','contact'],
+  sectionOrder: [...DEFAULT_ORDER],
 }, G.portfolio?.design || {});
+
+// DB에 저장된 sectionOrder에 누락된 섹션이 있으면 자동으로 추가
+(function fixSectionOrder() {
+  const order = DS.sectionOrder || [];
+  ALL_SECTION_IDS.forEach(id => {
+    if (!order.includes(id)) {
+      // contact 바로 앞에 삽입 (없으면 맨 뒤)
+      const contactIdx = order.indexOf('contact');
+      if (contactIdx > -1) order.splice(contactIdx, 0, id);
+      else order.push(id);
+    }
+  });
+  DS.sectionOrder = order;
+})();
 
 let liveTimer = null;
 const showLive = () => {
