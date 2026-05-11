@@ -172,7 +172,7 @@ function setupOwner(){
   $('btn-add-project').onclick=openProjectAdd;
 
   // ① 배너 사진 변경
-  $('banner-change-btn').addEventListener('click',()=>$('banner-file').click());
+  $('banner-change-btn').onclick = () => $('banner-file').click();
   $('banner-file').addEventListener('change',async e=>{
     const f=e.target.files[0]; if(!f) return;
     const fd=new FormData(); fd.append('photo',f);
@@ -231,7 +231,7 @@ async function saveProfile(){
     badge:$('p-badge').value, desc:$('p-desc').value,
     tags:$('p-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
   });
-  if(res.ok){ G.portfolio=res.portfolio; renderAll(); closeModal('profile'); toast('프로필 저장됨!','success'); }
+  if(res.ok){ G.portfolio=Object.assign({},G.portfolio,res.portfolio); renderAll(); closeModal('profile'); toast('프로필 저장됨!','success'); }
 }
 
 // ── 저장: 소개 ───────────────────────────────────────────────
@@ -240,17 +240,30 @@ async function saveAbout(){
     aboutText:$('a-text').value, school:$('a-school').value,
     grade:$('a-grade').value, interest:$('a-interest').value, goal:$('a-goal').value,
   });
-  if(res.ok){ G.portfolio=res.portfolio; renderAll(); closeModal('about'); toast('소개 저장됨!','success'); }
+  if(res.ok){ G.portfolio=Object.assign({},G.portfolio,res.portfolio); renderAll(); closeModal('about'); toast('소개 저장됨!','success'); }
 }
 
 // ③ 저장: 연락처 (전화번호 + 유튜브)
 async function saveContact(){
-  const res=await api('/api/portfolio','PATCH',{
-    contactDesc:$('c-desc').value, email:$('c-email').value,
-    phone:$('c-phone').value, github:$('c-github').value,
-    youtube:$('c-youtube').value, instagram:$('c-insta').value,
-  });
-  if(res.ok){ G.portfolio=res.portfolio; renderAll(); closeModal('contact'); toast('연락처 저장됨!','success'); }
+  const updates = {
+    contactDesc: $('c-desc').value,
+    email:       $('c-email').value,
+    phone:       $('c-phone').value,
+    github:      $('c-github').value,
+    youtube:     $('c-youtube').value,
+    instagram:   $('c-insta').value,
+  };
+  const res = await api('/api/portfolio','PATCH', updates);
+  if(res.ok){
+    // 서버 응답으로 받은 portfolio로 업데이트 (없는 필드는 기존 값 유지)
+    G.portfolio = Object.assign({}, G.portfolio, res.portfolio || updates);
+    // phone, youtube가 res.portfolio에 없을 경우 직접 세팅
+    if(!G.portfolio.phone)   G.portfolio.phone   = updates.phone;
+    if(!G.portfolio.youtube) G.portfolio.youtube = updates.youtube;
+    renderAll();
+    closeModal('contact');
+    toast('연락처 저장됨!','success');
+  }
 }
 
 // ── 작품 추가/수정 ───────────────────────────────────────────
