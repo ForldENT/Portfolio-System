@@ -4,6 +4,9 @@
 
 const G = { username:null, me:null, isOwner:false, portfolio:null, filter:'all' };
 
+// XSS 방어 — HTML 출력 시 반드시 이 함수를 거쳐야 함
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+
 const $     = id => document.getElementById(id);
 const ytId  = url => { const m=(url||'').match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; };
 const toast = (msg, type='info') => {
@@ -62,7 +65,7 @@ function renderAll() {
   const parts=(P.name||'이름').split(' ');
   $('hero-name').innerHTML=parts.length>1?`${parts[0]} <span>${parts.slice(1).join(' ')}</span>`:`<span>${parts[0]}</span>`;
   $('hero-desc').textContent=P.desc||'';
-  $('hero-tags').innerHTML=(P.tags||[]).map(t=>`<span class="hero-tag">${t}</span>`).join('');
+  $('hero-tags').innerHTML=(P.tags||[]).map(t=>`<span class="hero-tag">${esc(t)}</span>`).join('');
 
   // ① 배너 사진 적용
   const bg=$('hero-banner-bg');
@@ -70,7 +73,7 @@ function renderAll() {
   else { bg.style.backgroundImage='none'; }
 
   // 자기소개
-  $('about-text').innerHTML=(P.aboutText||'').replace(/\n/g,'<br>');
+  $('about-text').innerHTML=esc(P.aboutText||'').replace(/\n/g,'<br>');
   $('fact-school').textContent=P.school||'-'; $('fact-grade').textContent=P.grade||'-';
   $('fact-interest').textContent=P.interest||'-'; $('fact-goal').textContent=P.goal||'-';
 
@@ -112,7 +115,7 @@ function renderWorks(){
       :(w.src&&(w.type==='image'||w.type==='video'))?`<img src="${w.src}" alt="${w.title}"/>`
       :`<span style="font-size:2.2rem">${TI[w.type]||'📁'}</span>`;
     const btns=G.isOwner?`<div class="card-actions" style="display:flex"><button class="card-action-btn" onclick="event.stopPropagation();editWork('${w.id}')">✏️</button><button class="card-action-btn" style="color:#ff7070" onclick="event.stopPropagation();delWork('${w.id}')">🗑️</button></div>`:'';
-    return `<div class="work-card" onclick="viewWork('${w.id}')"><div class="work-thumb">${thumb}<span class="work-badge">${TL[w.type]||w.type}</span></div><div class="work-body"><h3 class="work-title">${w.title}</h3><p class="work-desc">${w.desc||''}</p><div class="work-tags">${(w.tags||[]).map(t=>`<span class="work-tag">${t}</span>`).join('')}</div></div>${btns}</div>`;
+    return `<div class="work-card" onclick="viewWork('${w.id}')"><div class="work-thumb">${thumb}<span class="work-badge">${TL[w.type]||w.type}</span></div><div class="work-body"><h3 class="work-title">${esc(w.title)}</h3><p class="work-desc">${esc(w.desc||'')}</p><div class="work-tags">${(w.tags||[]).map(t=>`<span class="work-tag">${esc(t)}</span>`).join('')}</div></div>${btns}</div>`;
   }).join('');
 }
 
@@ -127,7 +130,7 @@ function renderProjects(){
     const btns=G.isOwner?`<div class="project-actions" style="display:flex"><button class="card-action-btn" style="color:#ff7070" onclick="delProject('${p.id}')">🗑️</button></div>`:'';
     const dlBtn=p.src?`<a href="${p.src}" download class="project-dl">⬇️ 다운로드</a>`:
                 p.link?`<a href="${p.link}" target="_blank" class="project-dl">🔗 열기</a>`:'';
-    return `<div class="project-card"><div class="project-thumb">📦</div><div class="project-body"><h3 class="project-title">${p.name}</h3><p class="project-desc">${p.desc||''}</p><div class="project-tags">${(p.tags||[]).map(t=>`<span class="project-tag">${t}</span>`).join('')}</div>${dlBtn}</div>${btns}</div>`;
+    return `<div class="project-card"><div class="project-thumb">📦</div><div class="project-body"><h3 class="project-title">${esc(p.name)}</h3><p class="project-desc">${esc(p.desc||'')}</p><div class="project-tags">${(p.tags||[]).map(t=>`<span class="project-tag">${esc(t)}</span>`).join('')}</div>${dlBtn}</div>${btns}</div>`;
   }).join('');
 }
 
@@ -139,7 +142,7 @@ function renderDocs(){
   list.innerHTML=docs.map(d=>`
     <div class="doc-item">
       <div class="doc-icon ${d.type}">${ICO[d.type]||'📎'}</div>
-      <div class="doc-info"><div class="doc-name">${d.name}</div><div class="doc-meta">${d.type.toUpperCase()}${d.desc?' · '+d.desc:''}</div></div>
+      <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-meta">${esc(d.type.toUpperCase())}${d.desc?' · '+esc(d.desc):''}</div></div>
       <div class="doc-actions">
         ${d.src?`<a href="${d.src}" target="_blank" class="btn btn-primary btn-sm">보기</a>`:''}
         ${G.isOwner?`<button class="btn btn-danger btn-sm" onclick="delDoc('${d.id}')">삭제</button>`:''}
