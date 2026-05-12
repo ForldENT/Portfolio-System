@@ -36,12 +36,13 @@ app.use((req, res, next) => {
   // CSP — 허용된 소스만 스크립트/스타일 실행
   res.setHeader('Content-Security-Policy', [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",           // 인라인 스크립트 허용 (포트폴리오 기능)
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: https: blob:",            // 외부 이미지 허용 (유튜브 썸네일, Cloudinary)
-    "frame-src https://www.youtube.com",            // 유튜브 iframe만 허용
-    "connect-src 'self'",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: https: blob: http:",
+    "frame-src https://www.youtube.com https://drive.google.com",
+    "connect-src 'self' https: wss:",
+    "media-src 'self' https: blob:",
   ].join('; '));
   next();
 });
