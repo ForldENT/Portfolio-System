@@ -13,6 +13,9 @@ const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === 'production' ||
                (process.env.APP_URL||'').startsWith('https://');
 
+// Render, Heroku 등 프록시 서버 신뢰 설정 (HTTPS 쿠키 정상 작동에 필수)
+app.set('trust proxy', 1);
+
 // 폴더 자동 생성
 ['data', 'public/uploads'].forEach(d => {
   const full = path.join(__dirname, '..', d);
@@ -51,9 +54,9 @@ app.use(session({
   name: 'portfolio.sid',   // 기본 'connect.sid' 대신 커스텀 이름
   cookie: {
     maxAge:   7 * 24 * 60 * 60 * 1000,  // 7일
-    httpOnly: true,    // ★ JavaScript에서 쿠키 접근 불가 → XSS로 쿠키 탈취 차단
-    secure:   isProd,  // ★ HTTPS에서만 쿠키 전송 (프로덕션)
-    sameSite: 'lax',   // ★ 외부 사이트에서 쿠키 전송 제한 → CSRF 차단
+    httpOnly: true,    // ★ JS에서 쿠키 접근 불가 → XSS 쿠키 탈취 차단
+    secure:   false,   // Render 프록시 환경에서는 false (trust proxy로 대체)
+    sameSite: 'lax',   // ★ 외부 사이트 쿠키 전송 제한 → CSRF 차단
   },
 }));
 
