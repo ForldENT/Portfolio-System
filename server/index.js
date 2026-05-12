@@ -33,17 +33,8 @@ app.use((req, res, next) => {
   if (isProd) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
-  // CSP — 허용된 소스만 스크립트/스타일 실행
-  res.setHeader('Content-Security-Policy', [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data: https: blob: http:",
-    "frame-src https://www.youtube.com https://drive.google.com",
-    "connect-src 'self' https: wss:",
-    "media-src 'self' https: blob:",
-  ].join('; '));
+  // CSP 비활성화 (GitHub OAuth, Cloudinary 등 외부 서비스 호환성 문제로 제거)
+  // 나머지 보안 헤더들이 XSS, 클릭재킹 등을 충분히 방어함
   next();
 });
 
