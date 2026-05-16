@@ -379,7 +379,32 @@
       </div>
       <div class="dp-sec"><div class="dp-sec-ttl">배경 패턴</div><div class="bg-grid" id="bg-grid"></div></div>
     </div>
-    <div class="dp-pane" id="pane-font" style="display:none"><div class="dp-sec"><div class="dp-sec-ttl">폰트 선택</div><div id="font-list"></div></div></div>
+    <div class="dp-pane" id="pane-font" style="display:none">
+      <div class="dp-sec">
+        <div class="dp-sec-ttl">폰트 선택</div>
+        <div id="font-list"></div>
+      </div>
+      <div class="dp-sec">
+        <div class="dp-sec-ttl">글자 크기</div>
+        <div class="dp-sl-row"><span class="dp-sl-lbl">본문</span><input type="range" class="dp-sl" id="sl-body-size" min="12" max="22" value="16"/><span class="dp-sl-val" id="vl-body-size">16px</span></div>
+        <div class="dp-sl-row"><span class="dp-sl-lbl">제목</span><input type="range" class="dp-sl" id="sl-title-size" min="20" max="60" value="40"/><span class="dp-sl-val" id="vl-title-size">40px</span></div>
+      </div>
+      <div class="dp-sec">
+        <div class="dp-sec-ttl">글자 색상</div>
+        <div class="color-row">
+          <span class="cr-lbl">본문 색상</span>
+          <div class="cr-r"><div class="c-dot" id="body-color-dot" style="background:#1a2e45"></div><span class="c-hex" id="body-color-hex">#1a2e45</span><input type="color" class="dp-cp" id="body-color-picker" value="#1a2e45"/></div>
+        </div>
+        <div class="color-row" style="margin-top:.5rem">
+          <span class="cr-lbl">제목 색상</span>
+          <div class="cr-r"><div class="c-dot" id="title-color-dot" style="background:#0d1b2a"></div><span class="c-hex" id="title-color-hex">#0d1b2a</span><input type="color" class="dp-cp" id="title-color-picker" value="#0d1b2a"/></div>
+        </div>
+        <div class="color-row" style="margin-top:.5rem">
+          <span class="cr-lbl">서브 텍스트</span>
+          <div class="cr-r"><div class="c-dot" id="muted-color-dot" style="background:#90a4ae"></div><span class="c-hex" id="muted-color-hex">#90a4ae</span><input type="color" class="dp-cp" id="muted-color-picker" value="#90a4ae"/></div>
+        </div>
+      </div>
+    </div>
     <div class="dp-pane" id="pane-layout" style="display:none">
       <div class="dp-sec"><div class="dp-sec-ttl">포트폴리오 그리드</div><div class="layout-grid" id="layout-grid"></div></div>
       <div class="dp-sec">

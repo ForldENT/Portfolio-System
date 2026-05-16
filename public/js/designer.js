@@ -56,7 +56,10 @@ const ALL_SECTION_IDS = SECTIONS_META.map(s => s.id);
 let DS = Object.assign({
   theme:'dark', accentColor:'#1e88e5', font:'pretendard',
   layout:'default', bgPattern:'none', heroHeight:92, cardRadius:12,
-  animOn:true, shadowOn:true, borderOn:true,
+  hoverHeight:4, animOn:true, shadowOn:true, borderOn:true,
+  customFont:null, customFontName:'',
+  bodySizeFont:16, titleSizeFont:40,
+  bodyColor:'#1a2e45', titleColor:'#0d1b2a', mutedColor:'#90a4ae',
   sectionOrder: [...DEFAULT_ORDER],
 }, G.portfolio?.design || {});
 
@@ -128,15 +131,79 @@ function renderColorPane() {
 }
 
 function renderFontList() {
+  const customSelected = DS.font === 'custom';
   document.getElementById('font-list').innerHTML = FONTS.map(f => `
     <div class="font-opt ${DS.font===f.id?'selected':''}" data-fid="${f.id}"
-         onclick="applyFont('${f.id}');document.querySelectorAll('.font-opt').forEach(x=>x.classList.toggle('selected',x.dataset.fid==='${f.id}'))">
+         onclick="applyFont('${f.id}');document.querySelectorAll('.font-opt').forEach(x=>x.classList.toggle('selected',x.dataset.fid==='${f.id}'));document.getElementById('custom-font-wrap').style.display='none'">
       <div>
         <div class="fn" style="font-family:${f.body}">${f.name}</div>
         <div class="fp" style="font-family:${f.body}">${f.preview}</div>
       </div>
       <div class="f-chk">✓</div>
-    </div>`).join('');
+    </div>`).join('') + `
+    <div class="font-opt ${customSelected?'selected':''}" data-fid="custom"
+         onclick="selectCustomFont()">
+      <div>
+        <div class="fn">✏️ 커스텀 폰트</div>
+        <div class="fp" style="font-size:.75rem;color:#90a4ae">Google Fonts에서 직접 추가</div>
+      </div>
+      <div class="f-chk">✓</div>
+    </div>
+    <div id="custom-font-wrap" style="display:${customSelected?'block':'none'};margin-top:.6rem;background:#1a2e45;border-radius:8px;padding:.8rem">
+      <p style="font-size:.75rem;color:#90a4ae;margin-bottom:.5rem">
+        1. <a href="https://fonts.google.com" target="_blank" style="color:#1e88e5">fonts.google.com</a>에서 폰트 선택<br>
+        2. "Get embed code" → @import URL 복사<br>
+        3. 아래에 폰트 이름 입력
+      </p>
+      <div style="display:flex;gap:.4rem;margin-bottom:.4rem">
+        <input id="custom-font-url" class="fi" placeholder="Google Fonts URL (선택)"
+          value="${DS.customFontUrl||''}"
+          style="font-size:.8rem;flex:1"/>
+      </div>
+      <div style="display:flex;gap:.4rem">
+        <input id="custom-font-name" class="fi" placeholder="폰트 이름 (예: Nanum Pen Script)"
+          value="${DS.customFontName||''}"
+          style="font-size:.8rem;flex:1"/>
+        <button onclick="applyCustomFont()" class="btn btn-primary btn-sm" style="white-space:nowrap">적용</button>
+      </div>
+      ${customSelected && DS.customFontName ? `<p style="font-size:.78rem;color:#4caf50;margin-top:.4rem">현재 적용: ${DS.customFontName}</p>` : ''}
+    </div>`;
+}
+
+function selectCustomFont() {
+  document.querySelectorAll('.font-opt').forEach(x => x.classList.toggle('selected', x.dataset.fid==='custom'));
+  document.getElementById('custom-font-wrap').style.display = 'block';
+}
+
+function applyCustomFont() {
+  const url  = document.getElementById('custom-font-url').value.trim();
+  const name = document.getElementById('custom-font-name').value.trim();
+  if (!name) { alert('폰트 이름을 입력해주세요!'); return; }
+
+  // Google Fonts URL로 폰트 로드
+  if (url) {
+    let lk = document.getElementById('custom-font-lk');
+    if (lk) lk.remove();
+    lk = document.createElement('link');
+    lk.id = 'custom-font-lk';
+    lk.rel = 'stylesheet';
+    lk.href = url;
+    document.head.appendChild(lk);
+  }
+
+  DS.font           = 'custom';
+  DS.customFontUrl  = url;
+  DS.customFontName = name;
+
+  // 폰트 적용
+  document.body.style.fontFamily = `'${name}', sans-serif`;
+  document.querySelectorAll('.hero-name,.sec-title,h1,h2,h3').forEach(el => {
+    el.style.fontFamily = `'${name}', serif`;
+  });
+
+  renderFontList();
+  showLive();
+  toast('커스텀 폰트 적용됨! 💾 저장을 눌러주세요.', 'success');
 }
 
 function renderLayoutGrid() {
@@ -210,10 +277,26 @@ function moveSection(id, dir) {
 function syncControls() {
   document.getElementById('sl-hero').value   = DS.heroHeight;  document.getElementById('vl-hero').textContent   = DS.heroHeight+'vh';
   document.getElementById('sl-radius').value = DS.cardRadius;  document.getElementById('vl-radius').textContent = DS.cardRadius+'px';
-  document.getElementById('sl-hover').value  = 4;              document.getElementById('vl-hover').textContent  = '4px';
+  document.getElementById('sl-hover').value  = DS.hoverHeight||4; document.getElementById('vl-hover').textContent = (DS.hoverHeight||4)+'px';
   document.getElementById('tog-anim').checked   = DS.animOn;
   document.getElementById('tog-shadow').checked = DS.shadowOn;
   document.getElementById('tog-border').checked = DS.borderOn;
+  // 글자 크기
+  document.getElementById('sl-body-size').value  = DS.bodySizeFont||16;  document.getElementById('vl-body-size').textContent  = (DS.bodySizeFont||16)+'px';
+  document.getElementById('sl-title-size').value = DS.titleSizeFont||40; document.getElementById('vl-title-size').textContent = (DS.titleSizeFont||40)+'px';
+  // 글자 색상
+  const bc = DS.bodyColor||'#1a2e45';
+  document.getElementById('body-color-dot').style.background = bc;
+  document.getElementById('body-color-hex').textContent      = bc;
+  document.getElementById('body-color-picker').value         = bc;
+  const tc = DS.titleColor||'#0d1b2a';
+  document.getElementById('title-color-dot').style.background = tc;
+  document.getElementById('title-color-hex').textContent      = tc;
+  document.getElementById('title-color-picker').value         = tc;
+  const mc = DS.mutedColor||'#90a4ae';
+  document.getElementById('muted-color-dot').style.background = mc;
+  document.getElementById('muted-color-hex').textContent      = mc;
+  document.getElementById('muted-color-picker').value         = mc;
 }
 
 /* ── 슬라이더/토글 이벤트 ── */
@@ -237,12 +320,44 @@ document.addEventListener('click', e => {
 
 document.getElementById('sl-hero').addEventListener('input',   e => { DS.heroHeight=+e.target.value; document.getElementById('vl-hero').textContent=DS.heroHeight+'vh'; document.documentElement.style.setProperty('--hero-h',DS.heroHeight+'vh'); showLive(); });
 document.getElementById('sl-radius').addEventListener('input', e => { DS.cardRadius=+e.target.value; document.getElementById('vl-radius').textContent=DS.cardRadius+'px'; document.documentElement.style.setProperty('--radius',DS.cardRadius+'px'); showLive(); });
-document.getElementById('sl-hover').addEventListener('input',  e => { const v=+e.target.value; document.getElementById('vl-hover').textContent=v+'px'; document.documentElement.style.setProperty('--card-hover','-'+v+'px'); showLive(); });
+document.getElementById('sl-hover').addEventListener('input',  e => { const v=+e.target.value; DS.hoverHeight=v; document.getElementById('vl-hover').textContent=v+'px'; document.documentElement.style.setProperty('--card-hover','-'+v+'px'); showLive(); });
 document.getElementById('tog-anim').addEventListener('change',   e => { DS.animOn=e.target.checked;   applyAnim();          showLive(); });
 document.getElementById('tog-shadow').addEventListener('change', e => { DS.shadowOn=e.target.checked; applyShadow();        showLive(); });
 document.getElementById('tog-border').addEventListener('change', e => { DS.borderOn=e.target.checked; applyBorderToggle();  showLive(); });
 document.getElementById('tog-scroll').addEventListener('change', e => { applyScrollFade(e.target.checked); showLive(); });
 document.getElementById('tog-particle').addEventListener('change', e => { applyParticle(e.target.checked); showLive(); });
+
+// ── 글자 크기 슬라이더 ──────────────────────────────────────
+document.getElementById('sl-body-size').addEventListener('input', e => {
+  DS.bodySizeFont = +e.target.value;
+  document.getElementById('vl-body-size').textContent = DS.bodySizeFont + 'px';
+  applyFontSize(); showLive();
+});
+document.getElementById('sl-title-size').addEventListener('input', e => {
+  DS.titleSizeFont = +e.target.value;
+  document.getElementById('vl-title-size').textContent = DS.titleSizeFont + 'px';
+  applyFontSize(); showLive();
+});
+
+// ── 글자 색상 피커 ───────────────────────────────────────────
+document.getElementById('body-color-picker').addEventListener('input', e => {
+  DS.bodyColor = e.target.value;
+  document.getElementById('body-color-dot').style.background = e.target.value;
+  document.getElementById('body-color-hex').textContent      = e.target.value;
+  applyFontColor(); showLive();
+});
+document.getElementById('title-color-picker').addEventListener('input', e => {
+  DS.titleColor = e.target.value;
+  document.getElementById('title-color-dot').style.background = e.target.value;
+  document.getElementById('title-color-hex').textContent      = e.target.value;
+  applyFontColor(); showLive();
+});
+document.getElementById('muted-color-picker').addEventListener('input', e => {
+  DS.mutedColor = e.target.value;
+  document.getElementById('muted-color-dot').style.background = e.target.value;
+  document.getElementById('muted-color-hex').textContent      = e.target.value;
+  applyFontColor(); showLive();
+});
 
 /* ── 디자인 적용 함수들 ── */
 function applyTheme(id) {
@@ -262,7 +377,9 @@ function applyTheme(id) {
 }
 
 function applyFont(id) {
+  if (id === 'custom') { selectCustomFont(); return; }
   const f = FONTS.find(x=>x.id===id); if (!f) return; DS.font=id;
+  DS.customFontName = ''; DS.customFontUrl = '';
   if (f.url) {
     let lk = document.getElementById('dp-font-lk'); if(lk) lk.remove();
     lk = document.createElement('link'); lk.id='dp-font-lk'; lk.rel='stylesheet'; lk.href=f.url;
@@ -338,6 +455,37 @@ function applyParticle(on) {
   })();
 }
 
+// ── 글자 크기 적용 ───────────────────────────────────────────
+function applyFontSize() {
+  const bodySize  = DS.bodySizeFont  || 16;
+  const titleSize = DS.titleSizeFont || 40;
+  let s = document.getElementById('dp-fontsize-s');
+  if (!s) { s = document.createElement('style'); s.id = 'dp-fontsize-s'; document.head.appendChild(s); }
+  s.textContent = `
+    body, p, .about-text, .work-desc, .doc-meta, .project-desc { font-size: ${bodySize}px !important; }
+    .hero-name { font-size: clamp(${Math.max(titleSize-10,24)}px, 8vw, ${titleSize+20}px) !important; }
+    .sec-title { font-size: clamp(${Math.max(titleSize-20,18)}px, 4vw, ${titleSize}px) !important; }
+    h1, h2, h3, .work-title, .project-title, .doc-name { font-size: ${Math.round(bodySize * 1.15)}px !important; }
+  `;
+}
+
+// ── 글자 색상 적용 ───────────────────────────────────────────
+function applyFontColor() {
+  const bodyColor  = DS.bodyColor  || '#1a2e45';
+  const titleColor = DS.titleColor || '#0d1b2a';
+  const mutedColor = DS.mutedColor || '#90a4ae';
+  let s = document.getElementById('dp-fontcolor-s');
+  if (!s) { s = document.createElement('style'); s.id = 'dp-fontcolor-s'; document.head.appendChild(s); }
+  s.textContent = `
+    body, p, .about-text, .fact-val { color: ${bodyColor} !important; }
+    .sec-title, .work-title, .project-title, .doc-name, h1, h2, h3 { color: ${titleColor} !important; }
+    .sec-label { color: var(--accent) !important; }
+    .work-desc, .project-desc, .doc-meta, .fact-lbl, .sec-muted { color: ${mutedColor} !important; }
+  `;
+  document.documentElement.style.setProperty('--pg-text',  bodyColor);
+  document.documentElement.style.setProperty('--pg-muted', mutedColor);
+}
+
 /* ── 전체 적용 (외부에서도 호출 가능) ── */
 function applyDesignAll(dz) {
   if (!dz) return;
@@ -347,9 +495,12 @@ function applyDesignAll(dz) {
   if (dz.layout)     applyLayout(dz.layout);
   if (dz.bgPattern)  applyBgPattern(dz.bgPattern);
   applyAnim(); applyShadow(); applyBorderToggle();
-  document.documentElement.style.setProperty('--accent',  dz.accentColor || '#1e88e5');
-  document.documentElement.style.setProperty('--radius',  (dz.cardRadius || 12) + 'px');
-  document.documentElement.style.setProperty('--hero-h',  (dz.heroHeight  || 92) + 'vh');
+  document.documentElement.style.setProperty('--accent',     dz.accentColor  || '#1e88e5');
+  document.documentElement.style.setProperty('--radius',     (dz.cardRadius  || 12) + 'px');
+  document.documentElement.style.setProperty('--hero-h',     (dz.heroHeight  || 92) + 'vh');
+  document.documentElement.style.setProperty('--card-hover', '-' + (dz.hoverHeight || 4) + 'px');
+  applyFontSize();
+  applyFontColor();
 }
 
 /* ── 저장 / 초기화 ── */
@@ -369,6 +520,6 @@ async function saveDesign() {
 
 function resetDesign() {
   if (!confirm('디자인을 기본값으로 초기화할까요?')) return;
-  DS = { theme:'dark', accentColor:'#1e88e5', font:'pretendard', layout:'default', bgPattern:'none', heroHeight:92, cardRadius:12, animOn:true, shadowOn:true, borderOn:true, sectionOrder:['about','portfolio','resume','projects','contact'] };
+  DS = { theme:'dark', accentColor:'#1e88e5', font:'pretendard', layout:'default', bgPattern:'none', heroHeight:92, cardRadius:12, hoverHeight:4, animOn:true, shadowOn:true, borderOn:true, customFont:null, customFontName:'', bodySizeFont:16, titleSizeFont:40, bodyColor:'#1a2e45', titleColor:'#0d1b2a', mutedColor:'#90a4ae', sectionOrder:['about','portfolio','resume','projects','contact'] };
   applyDesignAll(DS); renderDP(); showLive(); toast('초기화 완료!','info');
 }

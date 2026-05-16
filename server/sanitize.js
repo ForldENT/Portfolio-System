@@ -164,6 +164,25 @@ function sanitizeDesign(design) {
     const allowed = ['about','portfolio','resume','projects','contact'];
     clean.sectionOrder = design.sectionOrder.filter(s => allowed.includes(s));
   }
+  // 커스텀 폰트
+  if (design.font === 'custom') clean.font = 'custom';
+  if (design.customFontName && typeof design.customFontName === 'string')
+    clean.customFontName = design.customFontName.slice(0, 60).replace(/[<>"']/g, '');
+  if (design.customFontUrl && typeof design.customFontUrl === 'string') {
+    const url = design.customFontUrl.trim();
+    if (url.startsWith('https://fonts.googleapis.com/') || url.startsWith('https://fonts.gstatic.com/'))
+      clean.customFontUrl = url;
+  }
+  // 호버 높이
+  if (typeof design.hoverHeight === 'number')
+    clean.hoverHeight = Math.min(Math.max(design.hoverHeight, 0), 20);
+  // 글자 크기
+  if (typeof design.bodySizeFont  === 'number') clean.bodySizeFont  = Math.min(Math.max(design.bodySizeFont,  12), 22);
+  if (typeof design.titleSizeFont === 'number') clean.titleSizeFont = Math.min(Math.max(design.titleSizeFont, 20), 60);
+  // 글자 색상
+  if (design.bodyColor  && /^#[0-9a-fA-F]{3,8}$/.test(design.bodyColor))  clean.bodyColor  = design.bodyColor;
+  if (design.titleColor && /^#[0-9a-fA-F]{3,8}$/.test(design.titleColor)) clean.titleColor = design.titleColor;
+  if (design.mutedColor && /^#[0-9a-fA-F]{3,8}$/.test(design.mutedColor)) clean.mutedColor = design.mutedColor;
   return clean;
 }
 
