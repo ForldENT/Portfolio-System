@@ -40,12 +40,18 @@ const fileFilter = (req, file, cb) => {
 const uploadImage = multer({ storage: memStorage, limits: { fileSize: 10*1024*1024 }, fileFilter: imageFilter });
 const uploadFile  = multer({ storage: memStorage, limits: { fileSize: 50*1024*1024 }, fileFilter });
 
+// ── Cloudinary 초기화 (파일 최상단에서 config 설정) ──────────
+const cloudinaryV2 = require('cloudinary').v2;
+cloudinaryV2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 // ── Cloudinary 업로드 함수 ────────────────────────────────────
 async function toCloud(buffer, options = {}) {
-  const cloudinary = require('cloudinary').v2;
   return new Promise((resolve, reject) => {
-    // streamifier 없이 Buffer.end() 직접 사용
-    cloudinary.uploader.upload_stream(options, (err, result) => {
+    cloudinaryV2.uploader.upload_stream(options, (err, result) => {
       if (err) reject(err); else resolve(result);
     }).end(buffer);
   });
