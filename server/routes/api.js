@@ -37,8 +37,8 @@ const fileFilter = (req, file, cb) => {
 };
 
 // 항상 메모리 스토리지 사용 (Cloudinary/로컬 분기는 getUrl에서 처리)
-const uploadImage = multer({ storage: memStorage, limits: { fileSize: 10*1024*1024 }, fileFilter: imageFilter });
-const uploadFile  = multer({ storage: memStorage, limits: { fileSize: 50*1024*1024 }, fileFilter });
+const uploadImage = multer({ storage: memStorage, limits: { fileSize: 20*1024*1024 }, fileFilter: imageFilter });
+const uploadFile  = multer({ storage: memStorage, limits: { fileSize: 100*1024*1024 }, fileFilter });
 
 // ── Cloudinary 초기화 (파일 최상단에서 config 설정) ──────────
 const cloudinaryV2 = require('cloudinary').v2;
