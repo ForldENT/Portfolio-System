@@ -63,19 +63,17 @@ async function getUrl(req, folder = 'portfolio/images', resource_type = 'auto') 
   if (useCloudinary() && req.file.buffer) {
     try {
       const ext = path.extname(req.file.originalname).toLowerCase().replace('.','');
-      // PDF, 알집 등 문서/압축파일은 반드시 raw 타입으로 업로드해야 브라우저에서 열림
       const isRaw = ['pdf','zip','alz','rar','7z','tar','gz','ppt','pptx'].includes(ext);
       const actualType = isRaw ? 'raw' : resource_type;
       const result = await toCloud(req.file.buffer, {
         folder,
-        public_id:     `${req.user?.username||'user'}_${Date.now()}`,
-        resource_type: actualType,
-        // 이미지만 자동 최적화 적용
-        transformation: (!isRaw && actualType !== 'raw') ? [{ quality:'auto', fetch_format:'auto' }] : undefined,
-        // PDF는 inline으로 열리도록 (다운로드 강제 X)
-        flags: ext === 'pdf' ? undefined : undefined,
+        // public_id에 확장자 포함 → URL에 .pdf 등 확장자 유지
+        public_id:       `${req.user?.username||'user'}_${Date.now()}.${ext}`,
+        resource_type:   actualType,
+        use_filename:    false,
+        unique_filename: false,
+        transformation:  (!isRaw && actualType !== 'raw') ? [{ quality:'auto', fetch_format:'auto' }] : undefined,
       });
-      // PDF URL: Cloudinary raw URL은 그대로 브라우저에서 열림
       return result.secure_url;
     } catch(e) {
       console.error('Cloudinary 업로드 실패, 로컬로 전환:', e.message);
