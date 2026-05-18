@@ -36,8 +36,9 @@ const fileFilter = (req, file, cb) => {
     ? cb(null, true) : cb(new Error('지원하지 않는 파일 형식입니다.'));
 };
 
-const uploadImage = multer({ storage: useCloudinary() ? memStorage : diskStorage, limits: { fileSize: 10*1024*1024 }, fileFilter: imageFilter });
-const uploadFile  = multer({ storage: useCloudinary() ? memStorage : diskStorage, limits: { fileSize: 50*1024*1024 }, fileFilter });
+// 항상 메모리 스토리지 사용 (Cloudinary/로컬 분기는 getUrl에서 처리)
+const uploadImage = multer({ storage: memStorage, limits: { fileSize: 10*1024*1024 }, fileFilter: imageFilter });
+const uploadFile  = multer({ storage: memStorage, limits: { fileSize: 50*1024*1024 }, fileFilter });
 
 // ── Cloudinary 업로드 함수 ────────────────────────────────────
 async function toCloud(buffer, options = {}) {
@@ -74,7 +75,15 @@ async function getUrl(req, folder = 'portfolio/images', resource_type = 'auto') 
       console.error('Cloudinary 업로드 실패, 로컬로 전환:', e.message);
     }
   }
-  if (req.file.filename) return '/uploads/' + req.file.filename;
+  // 로컬 저장 (Cloudinary 없을 때 메모리 버퍼를 디스크에 저장)
+  if (req.file.buffer) {
+    const fs2 = require('fs');
+    const fname = (req.user?.username||'user') + '_' + Date.now() + path.extname(req.file.originalname);
+    const fpath = path.join(__dirname, '../../public/uploads', fname);
+    fs2.mkdirSync(path.dirname(fpath), { recursive: true });
+    fs2.writeFileSync(fpath, req.file.buffer);
+    return '/uploads/' + fname;
+  }
   return null;
 }
 
