@@ -41,13 +41,12 @@ const uploadFile  = multer({ storage: useCloudinary() ? memStorage : diskStorage
 
 // ── Cloudinary 업로드 함수 ────────────────────────────────────
 async function toCloud(buffer, options = {}) {
-  const cloudinary   = require('cloudinary').v2;
-  const streamifier  = require('streamifier');
+  const cloudinary = require('cloudinary').v2;
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(options, (err, result) => {
+    // streamifier 없이 Buffer.end() 직접 사용
+    cloudinary.uploader.upload_stream(options, (err, result) => {
       if (err) reject(err); else resolve(result);
-    });
-    streamifier.createReadStream(buffer).pipe(stream);
+    }).end(buffer);
   });
 }
 

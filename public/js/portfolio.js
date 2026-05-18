@@ -20,7 +20,7 @@ function openModal(n) {
   const P = G.portfolio||{};
   if(n==='profile'){ $('p-name').value=P.name||''; $('p-site').value=P.siteTitle||''; $('p-badge').value=P.badge||''; $('p-desc').value=P.desc||''; $('p-tags').value=(P.tags||[]).join(', '); }
   if(n==='about'){   $('a-text').value=P.aboutText||''; $('a-school').value=P.school||''; $('a-grade').value=P.grade||''; $('a-interest').value=P.interest||''; $('a-goal').value=P.goal||''; }
-  if(n==='contact'){ $('c-desc').value=P.contactDesc||''; $('c-email').value=P.email||''; $('c-phone').value=P.phone||''; $('c-github').value=P.github||''; $('c-youtube').value=P.youtube||''; $('c-insta').value=P.instagram||''; }
+  if(n==='contact'){ $('c-desc').value=P.contactDesc||''; $('c-email').value=P.email||''; $('c-phone').value=P.phone||''; $('c-github').value=P.github||''; $('c-youtube').value=P.youtube||''; $('c-insta').value=P.instagram||''; $('c-notion').value=P.notion||''; }
   $(`modal-${n}`).classList.add('open');
 }
 function closeModal(n){ $(`modal-${n}`)?.classList.remove('open'); }
@@ -93,6 +93,7 @@ function renderAll() {
     P.github   && `<a href="${P.github}" target="_blank" class="contact-link">🐱 GitHub</a>`,
     P.youtube  && `<a href="${P.youtube}" target="_blank" class="contact-link">▶️ YouTube</a>`,
     P.instagram&& `<a href="${P.instagram}" target="_blank" class="contact-link">📸 Instagram</a>`,
+    P.notion   && `<a href="${P.notion}" target="_blank" class="contact-link">📝 Notion</a>`,
   ].filter(Boolean).join('');
 
   $('footer-txt').textContent=`© ${new Date().getFullYear()} ${P.name||''} 포트폴리오`;
@@ -255,6 +256,7 @@ async function saveContact(){
     github:      $('c-github').value,
     youtube:     $('c-youtube').value,
     instagram:   $('c-insta').value,
+    notion:      $('c-notion').value,
   };
   const res = await api('/api/portfolio','PATCH', updates);
   if(res.ok){
