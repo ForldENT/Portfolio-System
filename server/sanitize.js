@@ -63,7 +63,7 @@ function sanitizePortfolioUpdate(body) {
   });
 
   // URL 필드
-  const urlFields = ['github','youtube','instagram','bannerSrc','photoSrc'];
+  const urlFields = ['github','youtube','instagram','notion','bannerSrc','photoSrc'];
   urlFields.forEach(k => {
     if (body[k] !== undefined) clean[k] = sanitizeUrl(body[k]);
   });

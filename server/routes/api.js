@@ -36,18 +36,24 @@ const fileFilter = (req, file, cb) => {
     ? cb(null, true) : cb(new Error('지원하지 않는 파일 형식입니다.'));
 };
 
-const uploadImage = multer({ storage: useCloudinary() ? memStorage : diskStorage, limits: { fileSize: 10*1024*1024 }, fileFilter: imageFilter });
-const uploadFile  = multer({ storage: useCloudinary() ? memStorage : diskStorage, limits: { fileSize: 50*1024*1024 }, fileFilter });
+// 항상 메모리 스토리지 사용 (Cloudinary/로컬 분기는 getUrl에서 처리)
+const uploadImage = multer({ storage: memStorage, limits: { fileSize: 20*1024*1024 }, fileFilter: imageFilter });
+const uploadFile  = multer({ storage: memStorage, limits: { fileSize: 100*1024*1024 }, fileFilter });
+
+// ── Cloudinary 초기화 (파일 최상단에서 config 설정) ──────────
+const cloudinaryV2 = require('cloudinary').v2;
+cloudinaryV2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // ── Cloudinary 업로드 함수 ────────────────────────────────────
 async function toCloud(buffer, options = {}) {
-  const cloudinary   = require('cloudinary').v2;
-  const streamifier  = require('streamifier');
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(options, (err, result) => {
+    cloudinaryV2.uploader.upload_stream(options, (err, result) => {
       if (err) reject(err); else resolve(result);
-    });
-    streamifier.createReadStream(buffer).pipe(stream);
+    }).end(buffer);
   });
 }
 
@@ -57,25 +63,31 @@ async function getUrl(req, folder = 'portfolio/images', resource_type = 'auto') 
   if (useCloudinary() && req.file.buffer) {
     try {
       const ext = path.extname(req.file.originalname).toLowerCase().replace('.','');
-      // PDF, 알집 등 문서/압축파일은 반드시 raw 타입으로 업로드해야 브라우저에서 열림
       const isRaw = ['pdf','zip','alz','rar','7z','tar','gz','ppt','pptx'].includes(ext);
       const actualType = isRaw ? 'raw' : resource_type;
       const result = await toCloud(req.file.buffer, {
         folder,
-        public_id:     `${req.user?.username||'user'}_${Date.now()}`,
-        resource_type: actualType,
-        // 이미지만 자동 최적화 적용
-        transformation: (!isRaw && actualType !== 'raw') ? [{ quality:'auto', fetch_format:'auto' }] : undefined,
-        // PDF는 inline으로 열리도록 (다운로드 강제 X)
-        flags: ext === 'pdf' ? undefined : undefined,
+        // public_id에 확장자 포함 → URL에 .pdf 등 확장자 유지
+        public_id:       `${req.user?.username||'user'}_${Date.now()}.${ext}`,
+        resource_type:   actualType,
+        use_filename:    false,
+        unique_filename: false,
+        transformation:  (!isRaw && actualType !== 'raw') ? [{ quality:'auto', fetch_format:'auto' }] : undefined,
       });
-      // PDF URL: Cloudinary raw URL은 그대로 브라우저에서 열림
       return result.secure_url;
     } catch(e) {
       console.error('Cloudinary 업로드 실패, 로컬로 전환:', e.message);
     }
   }
-  if (req.file.filename) return '/uploads/' + req.file.filename;
+  // 로컬 저장 (Cloudinary 없을 때 메모리 버퍼를 디스크에 저장)
+  if (req.file.buffer) {
+    const fs2 = require('fs');
+    const fname = (req.user?.username||'user') + '_' + Date.now() + path.extname(req.file.originalname);
+    const fpath = path.join(__dirname, '../../public/uploads', fname);
+    fs2.mkdirSync(path.dirname(fpath), { recursive: true });
+    fs2.writeFileSync(fpath, req.file.buffer);
+    return '/uploads/' + fname;
+  }
   return null;
 }
 
