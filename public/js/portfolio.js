@@ -112,9 +112,24 @@ function renderWorks(){
   if(!list.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="ei">🎨</div><p>${G.isOwner?'"+ 작품 추가"로 첫 작품을 올려보세요!':'아직 작품이 없습니다.'}</p></div>`; return; }
   grid.innerHTML=list.map(w=>{
     const yid=w.type==='youtube'?ytId(w.src):null;
-    const thumb=yid?`<img src="https://img.youtube.com/vi/${yid}/hqdefault.jpg" alt="${w.title}"/>`
-      :(w.src&&(w.type==='image'||w.type==='video'))?`<img src="${w.src}" alt="${w.title}"/>`
-      :`<span style="font-size:2.2rem">${TI[w.type]||'📁'}</span>`;
+    let thumb;
+    if (yid) {
+      thumb = `<img src="https://img.youtube.com/vi/${yid}/hqdefault.jpg" alt="${esc(w.title)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"/>`;
+    } else if (w.src && (w.type==='image')) {
+      thumb = `<img src="${w.src}" alt="${esc(w.title)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"/>`;
+    } else if (w.type==='pdf' && w.src) {
+      // PDF 썸네일 — Cloudinary에서 자동 이미지 변환
+      const pdfThumbUrl = w.src.includes('cloudinary.com')
+        ? w.src.replace('/raw/upload/', '/image/upload/').replace(/\.pdf$/, '.jpg')
+        : null;
+      thumb = pdfThumbUrl
+        ? `<img src="${pdfThumbUrl}" alt="${esc(w.title)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" onerror="this.parentElement.innerHTML='<span style=\'font-size:2.5rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%\'>📄</span>'/>`
+        : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#fee2e2,#fecaca);gap:.4rem"><span style="font-size:2.5rem">📄</span><span style="font-size:.72rem;color:#ef4444;font-weight:700">PDF</span></div>`;
+    } else if (w.type==='video' && w.src) {
+      thumb = `<video src="${w.src}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" muted preload="metadata"></video>`;
+    } else {
+      thumb = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:.3rem"><span style="font-size:2.2rem">${TI[w.type]||'📁'}</span></div>`;
+    }
     const btns=G.isOwner?`<div class="card-actions" style="display:flex"><button class="card-action-btn" onclick="event.stopPropagation();editWork('${w.id}')">✏️</button><button class="card-action-btn" style="color:#ff7070" onclick="event.stopPropagation();delWork('${w.id}')">🗑️</button></div>`:'';
     return `<div class="work-card" onclick="viewWork('${w.id}')"><div class="work-thumb">${thumb}<span class="work-badge">${TL[w.type]||w.type}</span></div><div class="work-body"><h3 class="work-title">${esc(w.title)}</h3><p class="work-desc">${esc(w.desc||'')}</p><div class="work-tags">${(w.tags||[]).map(t=>`<span class="work-tag">${esc(t)}</span>`).join('')}</div></div>${btns}</div>`;
   }).join('');
@@ -381,7 +396,14 @@ function viewWork(id){
   let html='';
   if(yid) html=`<div style="position:relative;padding-top:56.25%"><iframe src="https://www.youtube.com/embed/${yid}" style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:8px" allowfullscreen></iframe></div>`;
   else if(w.type==='video'&&w.src) html=`<video src="${w.src}" controls style="width:100%;border-radius:8px"></video>`;
-  else if(w.type==='pdf'&&w.src) html=`<iframe src="${w.src}" style="width:100%;height:500px;border:0;border-radius:8px"></iframe>`;
+  else if(w.type==='pdf'&&w.src) html=`
+    <div style="text-align:center;margin-bottom:1rem">
+      <a href="${w.src}" target="_blank" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600">
+        📄 PDF 새 탭에서 열기
+      </a>
+    </div>
+    <iframe src="${w.src}" style="width:100%;height:500px;border:0;border-radius:8px"
+      onerror="this.style.display='none'"></iframe>`;
   else if(w.src) html=`<img src="${w.src}" style="width:100%;border-radius:8px;max-height:520px;object-fit:contain"/>`;
   else html=`<div style="text-align:center;padding:2rem;color:#90a4ae">미리보기 없음</div>`;
   $('viewer-media').innerHTML=html; openModal('viewer');
