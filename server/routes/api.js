@@ -48,6 +48,16 @@ cloudinaryV2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Cloudinary 연결 상태 확인
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  console.log('☁️  파일 업로드: Cloudinary (' + process.env.CLOUDINARY_CLOUD_NAME + ')');
+} else {
+  console.log('📁 파일 업로드: 로컬 저장 (Cloudinary 환경변수 없음)');
+  console.log('   CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME ? '✅' : '❌ 없음');
+  console.log('   CLOUDINARY_API_KEY:',    process.env.CLOUDINARY_API_KEY    ? '✅' : '❌ 없음');
+  console.log('   CLOUDINARY_API_SECRET:', process.env.CLOUDINARY_API_SECRET ? '✅' : '❌ 없음');
+}
+
 // ── Cloudinary 업로드 함수 ────────────────────────────────────
 async function toCloud(buffer, options = {}) {
   return new Promise((resolve, reject) => {
