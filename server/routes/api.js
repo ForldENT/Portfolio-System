@@ -77,9 +77,9 @@ async function getUrl(req, folder = 'portfolio/images', resource_type = 'auto') 
       const actualType = isRaw ? 'raw' : resource_type;
       const result = await toCloud(req.file.buffer, {
         folder,
-        // public_id에 확장자 포함 → URL에 .pdf 등 확장자 유지
         public_id:       `${req.user?.username||'user'}_${Date.now()}.${ext}`,
         resource_type:   actualType,
+        access_mode:     'public',   // ← 누구나 접근 가능하도록 설정
         use_filename:    false,
         unique_filename: false,
         transformation:  (!isRaw && actualType !== 'raw') ? [{ quality:'auto', fetch_format:'auto' }] : undefined,
