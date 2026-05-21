@@ -37,8 +37,8 @@ const fileFilter = (req, file, cb) => {
 };
 
 // 항상 메모리 스토리지 사용 (Cloudinary/로컬 분기는 getUrl에서 처리)
-const uploadImage = multer({ storage: memStorage, limits: { fileSize: 20*1024*1024 }, fileFilter: imageFilter });
-const uploadFile  = multer({ storage: memStorage, limits: { fileSize: 100*1024*1024 }, fileFilter });
+const uploadImage = multer({ storage: memStorage, limits: { fileSize: 10*1024*1024 }, fileFilter: imageFilter });
+const uploadFile  = multer({ storage: memStorage, limits: { fileSize: 10*1024*1024 }, fileFilter });
 
 // ── Cloudinary 초기화 (파일 최상단에서 config 설정) ──────────
 const cloudinaryV2 = require('cloudinary').v2;
@@ -166,7 +166,7 @@ router.patch('/portfolio', auth, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/portfolio/photo', auth, uploadImage.single('photo'), async (req, res) => {
+router.post('/portfolio/photo', auth, handleUpload(uploadImage.single('photo'), 'photo'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: '파일 없음' });
     const url = await getUrl(req, 'portfolio/images', 'image');
@@ -176,7 +176,7 @@ router.post('/portfolio/photo', auth, uploadImage.single('photo'), async (req, r
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/portfolio/banner', auth, uploadImage.single('photo'), async (req, res) => {
+router.post('/portfolio/banner', auth, handleUpload(uploadImage.single('photo'), 'photo'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: '파일 없음' });
     const url = await getUrl(req, 'portfolio/banners', 'image');
@@ -186,7 +186,7 @@ router.post('/portfolio/banner', auth, uploadImage.single('photo'), async (req, 
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/works', auth, uploadFile.single('file'), async (req, res) => {
+router.post('/works', auth, handleUpload(uploadFile.single('file'), 'file'), async (req, res) => {
   try {
     const safe = sanitizeWork(req.body);
     if (!safe.title) return res.status(400).json({ error: '제목을 입력하세요.' });
@@ -219,7 +219,7 @@ router.patch('/works/:id', auth, verifyWorkOwner, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.patch('/works/:id/image', auth, verifyWorkOwner, uploadFile.single('file'), async (req, res) => {
+router.patch('/works/:id/image', auth, verifyWorkOwner, handleUpload(uploadFile.single('file'), 'file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: '파일 없음' });
     const src = await getUrl(req, 'portfolio/works') || '';
@@ -234,7 +234,7 @@ router.delete('/works/:id', auth, verifyWorkOwner, async (req, res) => {
   catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/docs', auth, uploadFile.single('file'), async (req, res) => {
+router.post('/docs', auth, handleUpload(uploadFile.single('file'), 'file'), async (req, res) => {
   try {
     const safe = sanitizeDoc(req.body);
     if (!safe.name) return res.status(400).json({ error: '이름을 입력하세요.' });
@@ -250,7 +250,7 @@ router.delete('/docs/:id', auth, verifyDocOwner, async (req, res) => {
   catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/projects', auth, uploadFile.single('file'), async (req, res) => {
+router.post('/projects', auth, handleUpload(uploadFile.single('file'), 'file'), async (req, res) => {
   try {
     const safe = sanitizeProject(req.body);
     if (!safe.name) return res.status(400).json({ error: '이름을 입력하세요.' });
@@ -406,5 +406,21 @@ document.getElementById('vm').addEventListener('click',e=>{if(e.target===documen
     res.send(html);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
+
+// ── 업로드 크기 오류 핸들러 ──────────────────────────────────
+function handleUpload(uploader, field) {
+  return (req, res, next) => {
+    uploader(req, res, (err) => {
+      if (err && err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          error: '파일이 너무 큽니다! 최대 10MB까지 가능해요.\n영상 파일은 유튜브 링크를 사용해주세요.'
+        });
+      }
+      if (err) return res.status(400).json({ error: err.message });
+      next();
+    });
+  };
+}
 
 module.exports = router;
