@@ -116,15 +116,10 @@ function renderWorks(){
     if (yid) {
       thumb = `<img src="https://img.youtube.com/vi/${yid}/hqdefault.jpg" alt="${esc(w.title)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"/>`;
     } else if (w.src && (w.type==='image')) {
+    } else if (w.src && (w.type==='image')) {
       thumb = `<img src="${w.src}" alt="${esc(w.title)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"/>`;
-    } else if (w.type==='pdf' && w.src) {
-      // PDF 썸네일 — Cloudinary에서 자동 이미지 변환
-      const pdfThumbUrl = w.src.includes('cloudinary.com')
-        ? w.src.replace('/raw/upload/', '/image/upload/').replace(/\.pdf$/, '.jpg')
-        : null;
-      thumb = pdfThumbUrl
-        ? `<img src="${pdfThumbUrl}" alt="${esc(w.title)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" onerror="this.parentElement.innerHTML='<span style=\'font-size:2.5rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%\'>📄</span>'/>`
-        : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#fee2e2,#fecaca);gap:.4rem"><span style="font-size:2.5rem">📄</span><span style="font-size:.72rem;color:#ef4444;font-weight:700">PDF</span></div>`;
+      // PDF 썸네일 — 안정적인 아이콘 카드 방식
+      thumb = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#fee2e2,#fecaca);gap:.5rem"><span style="font-size:2.8rem">📄</span><span style="font-size:.75rem;color:#c62828;font-weight:700;letter-spacing:1px">PDF</span></div>`;
     } else if (w.type==='video' && w.src) {
       thumb = `<video src="${w.src}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" muted preload="metadata"></video>`;
     } else {

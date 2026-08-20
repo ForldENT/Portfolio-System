@@ -64,6 +64,7 @@ async function getAllUsers() {
     avatar:   (u.portfolio && u.portfolio.photoSrc) || u.avatar || '',
     name:     (u.portfolio && u.portfolio.name)   || u.username,
     school:   (u.portfolio && u.portfolio.school) || '',
+    grade:    (u.portfolio && u.portfolio.grade)  || '',
     goal:     (u.portfolio && u.portfolio.goal)   || '',
   }));
 }

@@ -55,6 +55,24 @@ body { background:#0d1b2a; color:#fff; }
 
 .empty   { text-align:center; padding:4rem; color:#90a4ae; grid-column:1/-1; }
 .empty .ei { font-size:3rem; margin-bottom:1rem; }
+
+.grade-btn {
+  background: #1a2e45;
+  border: 1px solid #2a4060;
+  color: #90a4ae;
+  padding: .38rem 1.1rem;
+  border-radius: 20px;
+  font-size: .85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .18s;
+}
+.grade-btn.active {
+  background: #1e88e5;
+  border-color: #1e88e5;
+  color: #fff;
+}
+.grade-btn:hover { border-color: #1e88e5; color: #fff; }
 </style>
 </head>
 <body>
@@ -74,6 +92,11 @@ body { background:#0d1b2a; color:#fff; }
 <section class="students">
   <p class="sec-lbl">All Students</p>
   <h2 class="sec-ttl">등록된 학생 포트폴리오</h2>
+  <div style="display:flex;gap:.6rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center">
+    <button class="grade-btn active" data-grade="all" onclick="filterGrade('all')">전체</button>
+    <button class="grade-btn" data-grade="2" onclick="filterGrade('2')">2학년</button>
+    <button class="grade-btn" data-grade="3" onclick="filterGrade('3')">3학년</button>
+  </div>
   <div class="grid" id="student-grid">
     <div class="empty"><div class="ei">⏳</div><p>불러오는 중...</p></div>
   </div>
@@ -124,7 +147,7 @@ function renderStudents(users) {
     return;
   }
   grid.innerHTML = users.map(u => `
-    <div class="s-card-wrap">
+    <div class="s-card-wrap" data-grade="${u.grade||''}">
       <a href="/u/${u.username}" class="s-card">
         <img src="${u.avatar||''}" alt="${u.username}"
           onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 fill=%22%231a2e45%22/><text x=%2232%22 y=%2240%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2228%22 font-family=%22sans-serif%22>${(u.name||u.username)[0].toUpperCase()}</text></svg>'"/>
