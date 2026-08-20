@@ -204,6 +204,22 @@ function showToast(msg, type='info') {
   document.getElementById('toast-wrap').appendChild(el);
   setTimeout(() => el.remove(), 3000);
 }
+
+// 학년 필터
+function filterGrade(grade) {
+  document.querySelectorAll('.grade-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.grade === grade)
+  );
+  document.querySelectorAll('.s-card-wrap').forEach(card => {
+    // "2", "2학년" 모두 매칭되도록 숫자만 추출
+    const g = (card.dataset.grade || '').replace(/[^0-9]/g, '');
+    if (grade === 'all') {
+      card.style.display = '';
+    } else {
+      card.style.display = g === grade ? '' : 'none';
+    }
+  });
+}
 </script>
 </body>
 </html>
